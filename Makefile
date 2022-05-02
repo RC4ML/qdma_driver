@@ -12,7 +12,7 @@ SHELL = /bin/bash
 # - enable_cmpt_immediate_data=<0|1>	enable immediate data in writeback desc.
 # - disable_st_c2h_completion=<0|1>	disable completion
 # - CROSS_COMPILE=,  gcc compiler prefix for architecture eg. aarch64-linux-gnu-
-
+apps_install_path ?= /usr/local/sbin
 # Define grep error output to NULL, since -s is not portable.
 grep = grep 2>/dev/null
 
@@ -236,3 +236,31 @@ help:
 	 echo " kernel_install_path=<path>";\
 	 echo "                     - kernel module install path.";\
 
+.PHONY: install-apps
+install-apps:
+	@echo "installing apps to $(apps_install_path) ..."
+	@mkdir -p -m 755 $(apps_install_path)
+	@install -v -m 755 bin/dma-ctl* $(apps_install_path)
+	@install -v -m 755 bin/dma-xfer* $(apps_install_path)
+	@install -v -m 755 bin/dma-from-device $(apps_install_path)
+	@install -v -m 755 bin/dma-to-device $(apps_install_path)
+	@install -v -m 755 bin/dma-perf $(apps_install_path)
+	@install -v -m 755 bin/dma-latency $(apps_install_path)
+	@install -v -m 774 src/rc4ml.h /usr/include
+
+.PHONY: uninstall-apps
+uninstall-apps:
+	@echo "Un-installing apps under $(apps_install_path) ..."
+	@/bin/rm -f $(apps_install_path)/dma-ctl
+	@/bin/rm -f $(apps_install_path)/dma-xfer
+	@/bin/rm -f $(apps_install_path)/dma-from-device
+	@/bin/rm -f $(apps_install_path)/dma-to-device
+	@/bin/rm -f $(apps_install_path)/dma-perf
+	@/bin/rm -f $(apps_install_path)/dma-latency
+
+.PHONY: apps
+apps:
+	@echo "#######################";
+	@echo "####  apps        ####";
+	@echo "#######################";
+	$(MAKE) -C apps
