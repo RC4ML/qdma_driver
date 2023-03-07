@@ -25,7 +25,7 @@ $(info ARCH = $(ARCH).)
 
 MOD_NAME := qdma$(PFVF_TYPE)
 
-EXTRA_CFLAGS += -DLINUX -D__KERNEL__ -DMODULE -O2 -pipe -Wall -Werror
+EXTRA_CFLAGS += -DLINUX -D__KERNEL__ -DMODULE -O2 -pipe -Wall
 EXTRA_CFLAGS += $(FLAGS) $(CPPFLAGS) $(EXTRA_FLAGS)
 EXTRA_CFLAGS += -I$(srcdir)/../include
 EXTRA_CFLAGS += -I$(KSRC)/../include

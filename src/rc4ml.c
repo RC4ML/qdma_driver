@@ -4,8 +4,11 @@
 #include <linux/string.h>
 #include <linux/uaccess.h>
 #include <linux/device.h>
-#include <linux/mm.h> 
+#include <linux/mm.h>
 #include <linux/slab.h>
+#include <linux/vmalloc.h>
+#include <linux/rwsem.h>
+#include <asm/io.h>
 #include "rc4ml.h"
 
 MODULE_LICENSE("GPL");
@@ -44,9 +47,17 @@ static int ioctl_huge_set(unsigned long arg){
 	printk(KERN_INFO "huge addr %px, size %ld\n", (void*)buf.vaddr, buf.size);
 	huge_table.huge_pages = vmalloc(npages * sizeof(struct page*));
 
+#ifndef MMAP_LOCK_INITIALIZER
 	down_read(&current->mm->mmap_sem);
+#else
+	mmap_read_lock(current->mm);
+#endif
 	rc = get_user_pages(buf.vaddr, npages, 1, huge_table.huge_pages, NULL);
+#ifndef MMAP_LOCK_INITIALIZER
 	up_read(&current->mm->mmap_sem);
+#else
+	mmap_read_unlock(current->mm);
+#endif
 	if (rc == 0) {
 		printk(KERN_INFO "get_user_pages failed\n");
 		return -1;
@@ -105,13 +116,14 @@ error:
 }
 
 static long rc4ml_ioctl(struct file *f, unsigned int cmd, unsigned long arg){
+	unsigned long rc = 0;
 	printk( "ioctl called.\n");
 	switch (cmd){
 	case QUERY_GET_VALUE:
-		copy_to_user((int *)arg, &a, sizeof(int));
+		rc = copy_to_user((int *)arg, &a, sizeof(int));
 		break;
 	case QUERY_SET_VALUE:
-		copy_from_user(&a, (int *)arg, sizeof(int));
+		rc = copy_from_user(&a, (int *)arg, sizeof(int));
 		break;
 	case HUGE_MAPPING_SET:
 		ioctl_huge_set(arg);
