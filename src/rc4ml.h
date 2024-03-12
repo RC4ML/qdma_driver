@@ -1,3 +1,6 @@
+#ifndef __QDMA_DRV_RC4ML_H__
+#define __QDMA_DRV_RC4ML_H__
+
 #include <linux/ioctl.h>
 
 #define rc4ml_major 90
@@ -29,3 +32,5 @@ struct huge_table_t{
 
 int rc4ml_init(void);
 void rc4ml_cleanup(void);
+
+#endif
