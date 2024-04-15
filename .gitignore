@@ -9,4 +9,5 @@ apps/dma-perf/dma-perf
 apps/dma-to-device/dma-to-device
 apps/dma-xfer/dma-xfer
 src/qdma-pf.ko
+src/qdma-pf.mod
 src/libqdma

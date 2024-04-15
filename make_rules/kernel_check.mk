@@ -179,13 +179,14 @@ modulesymfile := $(notdir $(modulesymfile))
 kernelsymfile := $(notdir $(kernelsymfile))
 $(shell [ -f eval.mak ] && /bin/rm -f eval.mak)
 
-ifneq ($(words $(modulesymfile)),1)
-  $(warning The parsing of $(KSRC)/scripts/Makefile.modpost \
-            is not making sense.)
-  $(warning You can try passing 'modulesymfile=Module.symvers' or \
-            similar to make.)
-  $(error ERROR cannot determine module symvers file)
-endif
+# edit by cxz(24/04/15) used for ubuntu22.04 5.15.0-102-generic
+# ifneq ($(words $(modulesymfile)),1)
+#   $(warning The parsing of $(KSRC)/scripts/Makefile.modpost \
+#             is not making sense.)
+#   $(warning You can try passing 'modulesymfile=Module.symvers' or \
+#             similar to make.)
+#   $(error ERROR cannot determine module symvers file)
+# endif
 
 
 # Check for configured kernel.

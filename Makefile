@@ -30,6 +30,8 @@ verbose := $(if $(filter s,$(MAKEFLAGS)),,-v)
 srcdir := $(shell pwd)
 topdir := $(shell cd $(srcdir)/.. && pwd)
 bin_dir := $(topdir)/bin
+# edit by cxz(24/04/15) used for ubuntu22.04 5.15.0-102-generic
+modulesymfile := /usr/src/linux-headers-$(shell uname -r)/Module.symvers
 
 kernel_check = 1
 distro_check = 1
