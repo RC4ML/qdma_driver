@@ -2,6 +2,7 @@
 
 1. prepare clone these repo to your home dir or anywhere you like.
 ~~~bash
+sudo apt-get install libaio1 libaio-dev
 git clone https://github.com/RC4ML/qdma_driver.git
 cd qdma_driver
 ~~~
