@@ -11,3 +11,4 @@ apps/dma-xfer/dma-xfer
 src/qdma-pf.ko
 src/qdma-pf.mod
 src/libqdma
+.vscode

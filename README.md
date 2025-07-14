@@ -31,7 +31,7 @@ dma-ctl qdma1a000 q start idx 0 dir bi desc_bypass_en pfetch_bypass_en
 make apps
 ~~~
 
-3. instlal all to /usr/local/sbin
+3. install all to /usr/local/sbin
 ~~~bash
 sudo make install-apps
 ~~~
