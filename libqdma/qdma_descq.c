@@ -1,8 +1,8 @@
 /*
  * This file is part of the Xilinx DMA IP Core driver for Linux
  *
- * Copyright (c) 2017-2020,  Xilinx, Inc.
- * All rights reserved.
+ * Copyright (c) 2017-2022, Xilinx, Inc. All rights reserved.
+ * Copyright (c) 2022-2024, Advanced Micro Devices, Inc. All rights reserved.
  *
  * This source code is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -31,6 +31,7 @@
 #include "qdma_context.h"
 #include "qdma_st_c2h.h"
 #include "qdma_access_common.h"
+#include "eqdma_soft_access.h"
 #include "thread.h"
 #include "qdma_ul_ext.h"
 #include "version.h"
@@ -196,6 +197,22 @@ static ssize_t descq_mm_proc_request(struct qdma_descq *descq)
 				 qconf->aperture_size : QDMA_DESC_BLEN_MAX;
 	u8 keyhole_en = qconf->aperture_size ? 1 : 0;
 	u64 ep_addr_max = 0;
+	u32 ip_version = 0;
+
+	if (descq->xdev->version_info.ip_type == EQDMA_SOFT_IP) {
+#ifndef __QDMA_VF__
+		uint8_t is_vf = 0;
+#else
+		uint8_t is_vf = 1;
+#endif
+		rv = eqdma_get_ip_version(descq->xdev, is_vf, &ip_version);
+		if (ip_version == EQDMA_IP_VERSION_5) {
+			if (qconf->aperture_size == 0) {
+				aperture = SOFT_EQDMA_DESC_BLEN_MAX;
+				pr_debug("aperture_size : %d\n", aperture);
+			}
+		}
+	}
 
 	lock_descq(descq);
 	/* process completion of submitted requests */
@@ -285,6 +302,21 @@ static ssize_t descq_mm_proc_request(struct qdma_descq *descq)
 			unsigned int tlen = sg->len;
 			dma_addr_t src_addr = sg->dma_addr;
 			unsigned int pg_off = sg->offset;
+
+			if (descq->xdev->version_info.ip_type ==
+					EQDMA_SOFT_IP) {
+				if (ip_version == EQDMA_IP_VERSION_5) {
+					if (qconf->aperture_size >=
+							SOFT_EQDMA_DESC_BLEN_MAX &&
+							sg->len >=
+							SOFT_EQDMA_DESC_MAX_LEN) {
+						pr_debug("EQDMA Soft IP 5.0 supports descriptor data transfer length < 64K.\n");
+						descq->proc_req_running = 0;
+						unlock_descq(descq);
+						return -EINVAL;
+					}
+				}
+			}
 
 			pr_debug("desc %u/%u, sgl %d, len %u,%u, offset %u.\n",
 				desc_cnt, desc_max, i, len, tlen, sg_offset);
@@ -1245,6 +1277,7 @@ void qdma_descq_config(struct qdma_descq *descq, struct qdma_queue_conf *qconf,
 		descq->conf.cmpl_timer_idx = qconf->cmpl_timer_idx;
 		descq->conf.fetch_credit = qconf->fetch_credit;
 		descq->conf.cmpl_cnt_th_idx = qconf->cmpl_cnt_th_idx;
+		/* Below check is applicable only for Versal family. */
 		if (descq->xdev->version_info.ip_type == QDMA_VERSAL_HARD_IP)
 			descq->channel = qconf->mm_channel;
 
@@ -1571,7 +1604,8 @@ int qdma_descq_dump_desc(struct qdma_descq *descq, int start,
 			len += snprintf(buf + len, buflen - len,
 				" fl pg 0x%p, 0x%llx.\n",
 				fl->pg, fl->dma_addr);
-			fl++;
+			if (i != (descq->conf.rngsz - 1))
+				fl++;
 		} else
 			buf[len++] = '\n';
 	}
@@ -1875,6 +1909,8 @@ int qdma_queue_packet_write(unsigned long dev_hndl, unsigned long id,
 		return -EINVAL;
 	}
 
+	memset(cb, 0, QDMA_REQ_OPAQUE_SIZE);
+	qdma_waitq_init(&cb->wq);
 	qdma_work_queue_add(descq, cb);
 
 	if (!req->dma_mapped) {
@@ -1952,7 +1988,9 @@ int qdma_descq_get_cmpt_udd(unsigned long dev_hndl, unsigned long id,
 	 */
 	for (i = 0; i < descq->cmpt_entry_len; i++) {
 		if (buf && buflen) {
-			if (xdev->version_info.ip_type == QDMA_VERSAL_HARD_IP) {
+			if ((xdev->version_info.ip_type == QDMA_VERSAL_HARD_IP)
+					&& xdev->version_info.device_type ==
+					QDMA_DEVICE_VERSAL_CPM4) {
 				if (i <= 1)
 					continue;
 				else if (i == 2)

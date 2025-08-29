@@ -1,8 +1,8 @@
 /*
  * This file is part of the Xilinx DMA IP Core driver for Linux
  *
- * Copyright (c) 2017-2020,  Xilinx, Inc.
- * All rights reserved.
+ * Copyright (c) 2017-2022, Xilinx, Inc. All rights reserved.
+ * Copyright (c) 2022-2024, Advanced Micro Devices, Inc. All rights reserved.
  *
  * This source code is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -90,9 +90,11 @@ static int make_sw_context(struct qdma_descq *descq,
 			(descq->conf.sw_desc_sz == DESC_SZ_64B)) {
 		sw_ctxt->desc_sz = descq->conf.sw_desc_sz;
 	} else {
+		sw_ctxt->fetch_max = FETCH_MAX_NUM;
 		if (!descq->conf.st) { /* mm h2c/c2h */
 			sw_ctxt->desc_sz = DESC_SZ_32B;
 			sw_ctxt->mm_chn = descq->channel;
+			sw_ctxt->host_id = descq->channel;
 		} else if (descq->conf.q_type == Q_C2H) {  /* st c2h */
 			sw_ctxt->frcd_en = descq->conf.fetch_credit;
 			sw_ctxt->desc_sz = DESC_SZ_8B;
@@ -196,29 +198,32 @@ static int make_cmpt_context(struct qdma_descq *descq,
 
 	memset(cmpt_ctxt, 0, sizeof(struct qdma_descq_cmpt_ctxt));
 
-	cmpt_ctxt->en_stat_desc = descq->conf.cmpl_stat_en;
-	cmpt_ctxt->en_int = descq->conf.cmpl_en_intr;
-	cmpt_ctxt->trig_mode = descq->conf.cmpl_trig_mode;
-	cmpt_ctxt->fnc_id = descq->xdev->func_id;
-	cmpt_ctxt->timer_idx = descq->conf.cmpl_timer_idx;
-	cmpt_ctxt->counter_idx = descq->conf.cmpl_cnt_th_idx;
-	cmpt_ctxt->color = 1;
-	cmpt_ctxt->ringsz_idx = descq->conf.cmpl_rng_sz_idx;
+	cmpt_ctxt->lower_dword.bit.en_stat_desc = descq->conf.cmpl_stat_en;
+	cmpt_ctxt->lower_dword.bit.en_int = descq->conf.cmpl_en_intr;
+	cmpt_ctxt->lower_dword.bit.trig_mode = descq->conf.cmpl_trig_mode;
+	cmpt_ctxt->lower_dword.bit.fnc_id = descq->xdev->func_id;
+	cmpt_ctxt->lower_dword.bit.timer_idx = descq->conf.cmpl_timer_idx;
+	cmpt_ctxt->lower_dword.bit.counter_idx = descq->conf.cmpl_cnt_th_idx;
+	cmpt_ctxt->lower_dword.bit.color = 1;
+	cmpt_ctxt->lower_dword.bit.ringsz_idx = descq->conf.cmpl_rng_sz_idx;
 
 	cmpt_ctxt->bs_addr = descq->desc_cmpt_bus;
-	cmpt_ctxt->desc_sz = descq->conf.cmpl_desc_sz;
-	cmpt_ctxt->full_upd = descq->conf.adaptive_rx;
+	cmpt_ctxt->higher_dword.bit.desc_sz = descq->conf.cmpl_desc_sz;
+	cmpt_ctxt->higher_dword.bit.full_upd = descq->conf.adaptive_rx;
 
-	cmpt_ctxt->valid = 1;
+	cmpt_ctxt->higher_dword.bit.valid = 1;
+	if (descq->conf.st && descq->conf.q_type == Q_C2H)
+		cmpt_ctxt->higher_dword.bit.dir_c2h = 1;
 
-	cmpt_ctxt->ovf_chk_dis = descq->conf.cmpl_ovf_chk_dis;
+	cmpt_ctxt->higher_dword.bit.ovf_chk_dis =
+		descq->conf.cmpl_ovf_chk_dis;
 	if ((descq->xdev->conf.qdma_drv_mode == INDIRECT_INTR_MODE) ||
 			(descq->xdev->conf.qdma_drv_mode == AUTO_MODE)) {
 		ring_index = get_intr_ring_index(descq->xdev, descq->intr_id);
-		cmpt_ctxt->vec = ring_index;
-		cmpt_ctxt->int_aggr = 1;
+		cmpt_ctxt->higher_dword.bit.vec = ring_index;
+		cmpt_ctxt->higher_dword.bit.int_aggr = 1;
 	} else {
-		cmpt_ctxt->vec = descq->intr_id;
+		cmpt_ctxt->higher_dword.bit.vec = descq->intr_id;
 	}
 
 	return 0;
@@ -787,6 +792,13 @@ int qdma_descq_context_read(struct xlnx_dma_dev *xdev, unsigned int qid_hw,
 			return xdev->hw.qdma_get_error_code(rv);
 		}
 
+		rv = xdev->hw.qdma_fmap_conf(xdev, xdev->func_id,
+				&(context->fmap), QDMA_HW_ACCESS_READ);
+		if (rv < 0) {
+			pr_err("Failed to read fmap context, rv = %d", rv);
+			return xdev->hw.qdma_get_error_code(rv);
+		}
+
 		if (st && type) {
 			rv = xdev->hw.qdma_pfetch_ctx_conf(xdev, qid_hw,
 						 &(context->pfetch_ctxt),
@@ -892,6 +904,7 @@ int qdma_descq_context_dump(struct qdma_descq *descq, char *buf, int buflen)
 	struct qdma_indirect_intr_ctxt intr_ctxt;
 
 	rv = descq->xdev->hw.qdma_read_dump_queue_context(descq->xdev,
+				descq->xdev->func_id,
 				descq->qidx_hw,
 				descq->conf.st, descq->conf.q_type,
 				buf, buflen);

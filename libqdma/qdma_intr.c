@@ -1,8 +1,8 @@
 /*
  * This file is part of the Xilinx DMA IP Core driver for Linux
  *
- * Copyright (c) 2017-2020,  Xilinx, Inc.
- * All rights reserved.
+ * Copyright (c) 2017-2022, Xilinx, Inc. All rights reserved.
+ * Copyright (c) 2022-2024, Advanced Micro Devices, Inc. All rights reserved.
  *
  * This source code is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -35,7 +35,7 @@
 #ifndef __QDMA_VF__
 static LIST_HEAD(legacy_intr_q_list);
 static spinlock_t legacy_intr_lock;
-static spinlock_t legacy_q_add_lock;
+static struct mutex legacy_q_add_lock;
 static unsigned long legacy_intr_flags = IRQF_SHARED;
 #endif
 
@@ -116,12 +116,18 @@ static irqreturn_t user_intr_handler(int irq_index, int irq, void *dev_id)
 {
 	struct xlnx_dma_dev *xdev = dev_id;
 
-	pr_info("User IRQ fired on Funtion#%d: index=%d, vector=%d\n",
+	pr_debug("User IRQ fired on Funtion#%d: index=%d, vector=%d\n",
 		xdev->func_id, irq_index, irq);
 
-	if (xdev->conf.fp_user_isr_handler)
+	if (xdev->conf.fp_user_isr_handler) {
+#ifndef __XRT__
 		xdev->conf.fp_user_isr_handler((unsigned long)xdev,
 						xdev->conf.uld);
+#else
+		xdev->conf.fp_user_isr_handler((unsigned long)xdev,
+						irq_index, xdev->conf.uld);
+#endif
+	}
 
 	return IRQ_HANDLED;
 }
@@ -193,7 +199,9 @@ static void data_intr_aggregate(struct xlnx_dma_dev *xdev, int vidx, int irq,
 	}
 
 	do {
-		if (xdev->version_info.ip_type == QDMA_VERSAL_HARD_IP) {
+		if ((xdev->version_info.ip_type == QDMA_VERSAL_HARD_IP) &&
+				(xdev->version_info.device_type ==
+				 QDMA_DEVICE_VERSAL_CPM4)) {
 			color = ring_entry->ring_cpm.coal_color;
 			intr_type = ring_entry->ring_cpm.intr_type;
 			qid = ring_entry->ring_cpm.qid;
@@ -252,10 +260,10 @@ static void data_intr_aggregate(struct xlnx_dma_dev *xdev, int vidx, int irq,
 		queue_intr_cidx_update(descq->xdev,
 			descq->conf.qidx, &coal_entry->intr_cidx_info);
 	} else if (num_entries_processed == 0) {
-		pr_warn("No entries processed\n");
+		pr_debug("No entries processed\n");
 		descq = xdev->prev_descq;
 		if (descq) {
-			pr_warn("Doing stale update\n");
+			pr_debug("Doing stale update\n");
 			queue_intr_cidx_update(descq->xdev,
 				descq->conf.qidx, &coal_entry->intr_cidx_info);
 		}
@@ -276,8 +284,6 @@ static void data_intr_direct(struct xlnx_dma_dev *xdev, int vidx, int irq,
 			  flags);
 	list_for_each_safe(entry, tmp, descq_list) {
 		descq = container_of(entry, struct qdma_descq, intr_list);
-		if (!descq)
-			continue;
 
 		if (descq->conf.ping_pong_en &&
 				descq->conf.q_type == Q_C2H && descq->conf.st)
@@ -596,8 +602,11 @@ int intr_setup(struct xlnx_dma_dev *xdev)
 
 #ifndef MBOX_INTERRUPT_DISABLE
 	/** Dedicate 1 vector for mailbox interrupts */
-	if ((xdev->version_info.device_type == QDMA_DEVICE_SOFT) &&
-	(xdev->version_info.vivado_release >= QDMA_VIVADO_2019_1))
+#ifndef __QDMA_VF__
+	if (xdev->dev_cap.mailbox_en && qdma_mbox_is_irq_available(xdev))
+#else
+	if (qdma_mbox_is_irq_available(xdev))
+#endif
 		num_vecs_req++;
 #endif
 
@@ -653,8 +662,11 @@ int intr_setup(struct xlnx_dma_dev *xdev)
 	i = 0; /* This is mandatory, do not delete */
 
 #ifndef MBOX_INTERRUPT_DISABLE
-	if ((xdev->version_info.device_type == QDMA_DEVICE_SOFT) &&
-	(xdev->version_info.vivado_release >= QDMA_VIVADO_2019_1)) {
+#ifndef __QDMA_VF__
+	if (xdev->dev_cap.mailbox_en && qdma_mbox_is_irq_available(xdev)) {
+#else
+	if (qdma_mbox_is_irq_available(xdev)) {
+#endif
 		/* Mail box interrupt */
 		rv = intr_vector_setup(xdev, i, INTR_TYPE_MBOX,
 				mbox_intr_handler);
@@ -779,7 +791,7 @@ int intr_legacy_setup(struct qdma_descq *descq)
 		return -EINVAL;
 	}
 
-	spin_lock(&legacy_q_add_lock);
+	mutex_lock(&legacy_q_add_lock);
 	req_irq = list_empty(&legacy_intr_q_list);
 	rv = req_irq ? 0 : 1;
 
@@ -790,7 +802,7 @@ int intr_legacy_setup(struct qdma_descq *descq)
 
 		if (descq->xdev->hw.qdma_legacy_intr_conf(descq->xdev,
 								DISABLE)) {
-			spin_unlock(&legacy_q_add_lock);
+			mutex_unlock(&legacy_q_add_lock);
 			return -EINVAL;
 		}
 
@@ -808,7 +820,7 @@ int intr_legacy_setup(struct qdma_descq *descq)
 		}
 		if (descq->xdev->hw.qdma_legacy_intr_conf(descq->xdev,
 								ENABLE)) {
-			spin_unlock(&legacy_q_add_lock);
+			mutex_unlock(&legacy_q_add_lock);
 			return -EINVAL;
 		}
 	} else
@@ -816,7 +828,7 @@ int intr_legacy_setup(struct qdma_descq *descq)
 			      &legacy_intr_q_list);
 
 exit_intr_setup:
-	spin_unlock(&legacy_q_add_lock);
+	mutex_unlock(&legacy_q_add_lock);
 	return rv;
 }
 #endif
@@ -1015,6 +1027,6 @@ int get_intr_ring_index(struct xlnx_dma_dev *xdev, u32 vector_index)
 void intr_legacy_init(void)
 {
 #ifndef __QDMA_VF__
-	spin_lock_init(&legacy_q_add_lock);
+	mutex_init(&legacy_q_add_lock);
 #endif
 }

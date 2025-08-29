@@ -1,5 +1,6 @@
 /*
- * Copyright(c) 2019-2020 Xilinx, Inc. All rights reserved.
+ * Copyright (c) 2019-2022, Xilinx, Inc. All rights reserved.
+ * Copyright (c) 2022-2024, Advanced Micro Devices, Inc. All rights reserved.
  *
  * This source code is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -76,13 +77,21 @@ static inline uint32_t get_trailing_zeros(uint64_t value)
 /* CSR Default values */
 #define DEFAULT_MAX_DSC_FETCH               6
 #define DEFAULT_WRB_INT                     QDMA_WRB_INTERVAL_128
-#define DEFAULT_PFCH_STOP_THRESH            256
+
+/* Default values for 0xB08 */
 #define DEFAULT_PFCH_NUM_ENTRIES_PER_Q      8
 #define DEFAULT_PFCH_MAX_Q_CNT              16
 #define DEFAULT_C2H_INTR_TIMER_TICK         25
-#define DEFAULT_CMPT_COAL_TIMER_CNT         5
 #define DEFAULT_CMPT_COAL_TIMER_TICK        25
 #define DEFAULT_CMPT_COAL_MAX_BUF_SZ        32
+
+#ifdef THROUGHPUT_MEASUREMENT
+/* Update WRB coalesce timer count for throughput measurement */
+#define DEFAULT_CMPT_COAL_TIMER_CNT         10
+#else
+/* Update WRB coalesce timer count for low latency measurement */
+#define DEFAULT_CMPT_COAL_TIMER_CNT         5
+#endif
 
 #define QDMA_BAR_NUM                        6
 
@@ -161,7 +170,7 @@ union qdma_ind_ctxt_cmd {
 		uint32_t busy:1;
 		uint32_t sel:4;
 		uint32_t op:2;
-		uint32_t qid:11;
+		uint32_t qid:12;
 		uint32_t rsvd:14;
 	} bits;
 };
@@ -339,63 +348,81 @@ struct qdma_descq_prefetch_ctxt {
  * struct qdma_descq_cmpt_ctxt - descq completion context config data structure
  */
 struct qdma_descq_cmpt_ctxt {
+	union __lower_dword__ {
+		uint32_t reg;
+		struct {
+			/** @en_stat_desc - Enable Completion Status writes */
+			uint8_t en_stat_desc :1;
+			/** @en_int - Enable Completion interrupts */
+			uint8_t en_int :1;
+			/** @trig_mode - Interrupt and Completion
+			 * Status Write Trigger Mode
+			 */
+			uint8_t trig_mode :3;
+			/** @fnc_id - Function ID */
+			uint8_t fnc_id :8;
+			/** @counter_idx - Index to counter register */
+			uint8_t counter_idx :4;
+			/** @timer_idx - Index to timer register */
+			uint8_t timer_idx :4;
+			/** @in_st - Interrupt State */
+			uint8_t in_st :2;
+			/** @color - initial color bit to be used on
+			 * Completion
+			 */
+			uint8_t color :1;
+			/** @ringsz_idx - Completion ring size index to
+			 * ring size registers
+			 */
+			uint8_t ringsz_idx :4;
+		} bit;
+	} lower_dword;
 	/** @bs_addr - completion ring base address */
 	uint64_t bs_addr;
-	/** @vec - Interrupt Vector */
-	uint16_t vec;
 	/** @pidx_l - producer index low */
 	uint16_t pidx;
 	/** @cidx - consumer index */
 	uint16_t cidx;
-	/** @en_stat_desc - Enable Completion Status writes */
-	uint8_t en_stat_desc;
-	/** @en_int - Enable Completion interrupts */
-	uint8_t en_int;
-	/** @trig_mode - Interrupt and Completion Status Write Trigger Mode */
-	uint8_t trig_mode;
-	/** @fnc_id - Function ID */
-	uint8_t fnc_id;
-	/** @counter_idx - Index to counter register */
-	uint8_t counter_idx;
-	/** @timer_idx - Index to timer register */
-	uint8_t timer_idx;
-	/** @in_st - Interrupt State */
-	uint8_t in_st;
-	/** @color - initial color bit to be used on Completion */
-	uint8_t color;
-	/** @ringsz_idx - Completion ring size index to ring size registers */
-	uint8_t ringsz_idx;
-	/** @desc_sz  -descriptor size */
-	uint8_t desc_sz;
-	/** @valid  - context valid */
-	uint8_t valid;
-	/** @err - error status */
-	uint8_t err;
-	/**
-	 * @user_trig_pend - user logic initiated interrupt is
-	 * pending to be generate
-	 */
-	uint8_t user_trig_pend;
-	/** @timer_running - timer is running on this queue */
-	uint8_t timer_running;
-	/** @full_upd - Full update */
-	uint8_t full_upd;
-	/** @ovf_chk_dis - Completion Ring Overflow Check Disable */
-	uint8_t ovf_chk_dis;
-	/** @at -Address Translation */
-	uint8_t at;
-	/** @int_aggr -Interrupt Aggregation */
-	uint8_t int_aggr;
-	/** @dis_intr_on_vf - Disbale interrupt with VF */
-	uint8_t dis_intr_on_vf;
-	/** @vio - queue is in VirtIO mode */
-	uint8_t vio;
-	/** @dir_c2h - DMA direction is C2H */
-	uint8_t dir_c2h;
-	/** @host_id - Host ID */
-	uint8_t host_id;
+	union __higher_dword__ {
+		uint32_t reg;
+		struct {
+			/** @desc_sz  -descriptor size */
+			uint8_t desc_sz :2;
+			/** @valid  - context valid */
+			uint8_t valid :1;
+			/** @err - error status */
+			uint8_t err :2;
+			/**
+			 * @user_trig_pend - user logic initiated interrupt is
+			 * pending to be generate
+			 */
+			uint8_t user_trig_pend :1;
+			/** @timer_running - timer is running on this queue */
+			uint8_t timer_running :1;
+			/** @full_upd - Full update */
+			uint8_t full_upd :1;
+			/** @ovf_chk_dis - Completion Ring Overflow
+			 * Check Disable
+			 */
+			uint8_t ovf_chk_dis :1;
+			 /** @at -Address Translation */
+			uint8_t at : 1;
+			/** @vec - Interrupt Vector */
+			uint16_t vec: 11;
+			/** @int_aggr -Interrupt Aggregation */
+			uint8_t int_aggr :1;
+			/** @dis_intr_on_vf - Disbale interrupt with VF */
+			uint8_t dis_intr_on_vf :1;
+			/** @dir_c2h - DMA direction is C2H */
+			uint8_t dir_c2h :1;
+			/** @host_id - Host ID */
+			uint8_t host_id :3;
+		} bit;
+	} higher_dword;
 	/** @pasid - PASID */
 	uint32_t pasid;
+	/** @vio - queue is in VirtIO mode */
+	uint8_t vio;
 	/** @pasid_en - PASID Enable */
 	uint8_t pasid_en;
 	/** @vio_eop - Virtio End-of-packet */
@@ -617,18 +644,18 @@ int hw_monitor_reg(void *dev_hndl, uint32_t reg, uint32_t mask,
 
 void qdma_memset(void *to, uint8_t val, uint32_t size);
 
-int qdma_acc_reg_dump_buf_len(void *dev_hndl,
-		enum qdma_ip_type ip_type, int *buflen);
+int qdma_acc_reg_dump_buf_len(void *dev_hndl, enum qdma_ip_type ip_type,
+		enum qdma_device_type device_type, int *buflen);
 
-int qdma_acc_reg_info_len(void *dev_hndl,
-		enum qdma_ip_type ip_type, int *buflen, int *num_regs);
+int qdma_acc_reg_info_len(void *dev_hndl, enum qdma_ip_type ip_type,
+		enum qdma_device_type device_type, int *buflen, int *num_regs);
 
-int qdma_acc_context_buf_len(void *dev_hndl,
-		enum qdma_ip_type ip_type, uint8_t st,
+int qdma_acc_context_buf_len(void *dev_hndl, enum qdma_ip_type ip_type,
+		enum qdma_device_type device_type, uint8_t st,
 		enum qdma_dev_q_type q_type, uint32_t *buflen);
 
-int qdma_acc_get_num_config_regs(void *dev_hndl,
-		enum qdma_ip_type ip_type, uint32_t *num_regs);
+int qdma_acc_get_num_config_regs(void *dev_hndl, enum qdma_ip_type ip_type,
+		enum qdma_device_type device_type, uint32_t *num_regs);
 
 /*
  * struct qdma_hw_access - Structure to hold HW access function pointers
@@ -684,8 +711,8 @@ struct qdma_hw_access {
 	int (*qdma_mm_channel_conf)(void *dev_hndl, uint8_t channel,
 				uint8_t is_c2h, uint8_t enable);
 	int (*qdma_get_user_bar)(void *dev_hndl, uint8_t is_vf,
-				uint8_t func_id, uint8_t *user_bar);
-	int (*qdma_get_function_number)(void *dev_hndl, uint8_t *func_id);
+				uint16_t func_id, uint8_t *user_bar);
+	int (*qdma_get_function_number)(void *dev_hndl, uint16_t *func_id);
 	int (*qdma_get_version)(void *dev_hndl, uint8_t is_vf,
 				struct qdma_hw_version_info *version_info);
 	int (*qdma_get_device_attributes)(void *dev_hndl,
@@ -709,6 +736,7 @@ struct qdma_hw_access {
 			struct qdma_descq_context *ctxt_data,
 			char *buf, uint32_t buflen);
 	int (*qdma_read_dump_queue_context)(void *dev_hndl,
+			uint16_t func_id,
 			uint16_t qid_hw,
 			uint8_t st,
 			enum qdma_dev_q_type q_type,
@@ -731,6 +759,9 @@ struct qdma_hw_access {
 			uint32_t num_regs,
 			struct qdma_reg_data *reg_list,
 			char *buf, uint32_t buflen);
+#ifdef TANDEM_BOOT_SUPPORTED
+	int (*qdma_init_st_ctxt)(void *dev_hndl);
+#endif
 	uint32_t mbox_base_pf;
 	uint32_t mbox_base_vf;
 	uint32_t qdma_max_errors;
@@ -757,17 +788,19 @@ int qdma_hw_access_init(void *dev_hndl, uint8_t is_vf,
 
 /*****************************************************************************/
 /**
- * qdma_acc_dump_config_regs() - Function to get qdma config registers
+ * qdma_acc_get_config_regs() - Function to get qdma config registers
  *
  * @dev_hndl:   device handle
  * @is_vf:      Whether PF or VF
  * @ip_type:	QDMA IP Type
+ * @device_type:QDMA DEVICE Type
  * @reg_data:  pointer to register data to be filled
  *
  * Return:	Length up-till the buffer is filled -success and < 0 - failure
  *****************************************************************************/
 int qdma_acc_get_config_regs(void *dev_hndl, uint8_t is_vf,
 		enum qdma_ip_type ip_type,
+		enum qdma_device_type device_type,
 		uint32_t *reg_data);
 
 /*****************************************************************************/
@@ -778,6 +811,7 @@ int qdma_acc_get_config_regs(void *dev_hndl, uint8_t is_vf,
  * @dev_hndl:   device handle
  * @is_vf:      Whether PF or VF
  * @ip_type:	QDMA IP Type
+ * @device_type:QDMA DEVICE Type
  * @buf :       pointer to buffer to be filled
  * @buflen :    Length of the buffer
  *
@@ -785,6 +819,7 @@ int qdma_acc_get_config_regs(void *dev_hndl, uint8_t is_vf,
  *****************************************************************************/
 int qdma_acc_dump_config_regs(void *dev_hndl, uint8_t is_vf,
 		enum qdma_ip_type ip_type,
+		enum qdma_device_type device_type,
 		char *buf, uint32_t buflen);
 
 /*****************************************************************************/
@@ -793,6 +828,7 @@ int qdma_acc_dump_config_regs(void *dev_hndl, uint8_t is_vf,
  *
  * @dev_hndl:   device handle
  * @ip_type:	QDMA IP Type
+ * @device_type:QDMA DEVICE Type
  * @reg_addr:   Register Address
  * @num_regs:   Number of Registers
  * @buf :       pointer to buffer to be filled
@@ -800,8 +836,8 @@ int qdma_acc_dump_config_regs(void *dev_hndl, uint8_t is_vf,
  *
  * Return:	Length up-till the buffer is filled -success and < 0 - failure
  *****************************************************************************/
-int qdma_acc_dump_reg_info(void *dev_hndl,
-		enum qdma_ip_type ip_type, uint32_t reg_addr,
+int qdma_acc_dump_reg_info(void *dev_hndl, enum qdma_ip_type ip_type,
+		enum qdma_device_type device_type, uint32_t reg_addr,
 		uint32_t num_regs, char *buf, uint32_t buflen);
 
 /*****************************************************************************/
@@ -812,6 +848,7 @@ int qdma_acc_dump_reg_info(void *dev_hndl,
  *
  * @dev_hndl:   device handle
  * @ip_type:	QDMA IP Type
+ * @device_type:QDMA DEVICE Type
  * @st:		ST or MM
  * @q_type:	Queue Type
  * @ctxt_data:	Context Data
@@ -822,6 +859,7 @@ int qdma_acc_dump_reg_info(void *dev_hndl,
  *****************************************************************************/
 int qdma_acc_dump_queue_context(void *dev_hndl,
 		enum qdma_ip_type ip_type,
+		enum qdma_device_type device_type,
 		uint8_t st,
 		enum qdma_dev_q_type q_type,
 		struct qdma_descq_context *ctxt_data,
@@ -834,6 +872,7 @@ int qdma_acc_dump_queue_context(void *dev_hndl,
  *
  * @dev_hndl:   device handle
  * @ip_type:	QDMA IP Type
+ * @device_type:QDMA DEVICE Type
  * @qid_hw:     queue id
  * @st:		ST or MM
  * @q_type:	Queue Type
@@ -844,6 +883,8 @@ int qdma_acc_dump_queue_context(void *dev_hndl,
  *****************************************************************************/
 int qdma_acc_read_dump_queue_context(void *dev_hndl,
 				enum qdma_ip_type ip_type,
+				enum qdma_device_type device_type,
+				uint16_t func_id,
 				uint16_t qid_hw,
 				uint8_t st,
 				enum qdma_dev_q_type q_type,
@@ -856,6 +897,7 @@ int qdma_acc_read_dump_queue_context(void *dev_hndl,
  *
  * @dev_hndl:		device handle
  * @ip_type:		QDMA IP Type
+ * @device_type:	QDMA DEVICE Type
  * @total_regs :	Max registers to read
  * @reg_list :		array of reg addr and reg values
  * @buf :		pointer to buffer to be filled
@@ -865,6 +907,7 @@ int qdma_acc_read_dump_queue_context(void *dev_hndl,
  *****************************************************************************/
 int qdma_acc_dump_config_reg_list(void *dev_hndl,
 		enum qdma_ip_type ip_type,
+		enum qdma_device_type device_type,
 		uint32_t num_regs,
 		struct qdma_reg_data *reg_list,
 		char *buf, uint32_t buflen);
@@ -891,9 +934,8 @@ int qdma_get_error_code(int acc_err_code);
  *
  * Return:	Nothing
  *****************************************************************************/
-void qdma_fetch_version_details(uint8_t is_vf, uint32_t version_reg_val,
-		struct qdma_hw_version_info *version_info);
-
+void qdma_fetch_version_details(void *dev_hndl, uint8_t is_vf,
+	uint32_t version_reg_val, struct qdma_hw_version_info *version_info);
 
 #ifdef __cplusplus
 }

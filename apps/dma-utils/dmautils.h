@@ -4,6 +4,7 @@
  *
  * Copyright (c) 2019 - 2020,  Xilinx, Inc.
  * All rights reserved.
+ * Copyright (c) 2022-2024,  Advanced Micro Devices, Inc. All rights reserved.
  *
  * This source code is licensed under BSD-style license (found in the
  * LICENSE file in the root directory of this source tree)
@@ -602,5 +603,18 @@ int qdmautils_sync_xfer(char *filename, enum qdmautils_io_dir dir, void *buf,
  *****************************************************************************/
 int qdmautils_async_xfer(char *filename, enum qdmautils_io_dir dir, void *buf,
 		   unsigned int xfer_len);
+
+#ifdef TANDEM_BOOT_SUPPORTED
+/*****************************************************************************/
+/**
+ * qdma_en_st() - Enable Streaming
+ *
+ * @cmd:	command information
+ *
+ * Return:	>=0 for success and <0 for error
+ *
+ *****************************************************************************/
+int qdma_en_st(struct xcmd_info *cmd);
+#endif
 
 #endif /* QDMAUTILS_H */

@@ -51,6 +51,9 @@ struct xlnx_phy_dev {
 	struct list_head list_head;	/**< board list */
 	unsigned int major;	/**< major number per board */
 	unsigned int device_bus;	/**< PCIe device bus number per board */
+#ifdef CONFIG_PCI_DOMAINS_GENERIC
+	unsigned int device_bus_domain; /**< PCIe bus domain per board */
+#endif
 	unsigned int dma_device_index;
 };
 
@@ -101,6 +104,7 @@ static inline void xlnx_phy_dev_list_add(struct xlnx_phy_dev *phy_dev)
 	mutex_unlock(&xlnx_phy_dev_mutex);
 }
 
+
 static int qdma_req_completed(struct qdma_request *req,
 		       unsigned int bytes_done, int err)
 {
@@ -133,10 +137,22 @@ static int qdma_req_completed(struct qdma_request *req,
 	if (caio->cmpl_count == caio->req_count) {
 		res = caio->cmpl_count - caio->err_cnt;
 		res2 = caio->res2;
-#if KERNEL_VERSION(4, 1, 0) <= LINUX_VERSION_CODE
+#ifdef RHEL_RELEASE_VERSION
+#if RHEL_RELEASE_VERSION(9, 0) < RHEL_RELEASE_CODE
+		caio->iocb->ki_complete(caio->iocb, res);
+#elif RHEL_RELEASE_VERSION(8, 0) < RHEL_RELEASE_CODE
 		caio->iocb->ki_complete(caio->iocb, res, res2);
 #else
 		aio_complete(caio->iocb, res, res2);
+#endif
+#else
+#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE
+		caio->iocb->ki_complete(caio->iocb, res);
+#elif KERNEL_VERSION(4, 1, 0) <= LINUX_VERSION_CODE
+		caio->iocb->ki_complete(caio->iocb, res, res2);
+#else
+		aio_complete(caio->iocb, res, res2);
+#endif
 #endif
 		kfree(caio->qiocb);
 		free_caio = true;
@@ -366,10 +382,6 @@ static ssize_t cdev_gen_read_write(struct file *file, char __user *buf,
 		xcdev->name, qhndl, buf, (u64)count, (u64)*pos,
 		write);
 
-	printk("%s, priv 0x%lx: buf 0x%p,%llu, pos %llu, W %d.\n",
-		xcdev->name, qhndl, buf, (u64)count, (u64)*pos,
-		write);
-
 	memset(&iocb, 0, sizeof(struct qdma_io_cb));
 	iocb.buf = buf;
 	iocb.len = count;
@@ -457,6 +469,7 @@ static ssize_t cdev_aio_write(struct kiocb *iocb, const struct iovec *io,
 		caio->reqv[i]->dma_mapped = false;
 		caio->reqv[i]->udd_len = 0;
 		caio->reqv[i]->ep_addr = (u64)pos;
+		pos += io[i].iov_len;
 		caio->reqv[i]->no_memcpy = xcdev->no_memcpy ? 1 : 0;
 		caio->reqv[i]->count = io->iov_len;
 		caio->reqv[i]->timeout_ms = 10 * 1000;	/* 10 seconds */
@@ -530,6 +543,7 @@ static ssize_t cdev_aio_read(struct kiocb *iocb, const struct iovec *io,
 		caio->reqv[i]->dma_mapped = false;
 		caio->reqv[i]->udd_len = 0;
 		caio->reqv[i]->ep_addr = (u64)pos;
+		pos += io[i].iov_len;
 		caio->reqv[i]->no_memcpy = xcdev->no_memcpy ? 1 : 0;
 		caio->reqv[i]->count = io->iov_len;
 		caio->reqv[i]->timeout_ms = 10 * 1000;	/* 10 seconds */
@@ -556,12 +570,40 @@ static ssize_t cdev_aio_read(struct kiocb *iocb, const struct iovec *io,
 #if KERNEL_VERSION(3, 16, 0) <= LINUX_VERSION_CODE
 static ssize_t cdev_write_iter(struct kiocb *iocb, struct iov_iter *io)
 {
-	return cdev_aio_write(iocb, io->iov, io->nr_segs, iocb->ki_pos);
+#ifdef RHEL_RELEASE_VERSION
+	#if RHEL_RELEASE_VERSION(9, 4) > RHEL_RELEASE_CODE
+		return cdev_aio_write(iocb, io->iov, io->nr_segs, iocb->ki_pos);
+	#else
+		return cdev_aio_write(iocb, iter_iov(io), io->nr_segs,
+						         iocb->ki_pos);
+	#endif
+#else
+	#if KERNEL_VERSION(6, 4, 0) > LINUX_VERSION_CODE
+		return cdev_aio_write(iocb, io->iov, io->nr_segs, iocb->ki_pos);
+	#else
+		return cdev_aio_write(iocb, iter_iov(io), io->nr_segs,
+							 iocb->ki_pos);
+	#endif
+#endif
 }
 
 static ssize_t cdev_read_iter(struct kiocb *iocb, struct iov_iter *io)
 {
-	return cdev_aio_read(iocb, io->iov, io->nr_segs, iocb->ki_pos);
+#ifdef RHEL_RELEASE_VERSION
+	#if RHEL_RELEASE_VERSION(9, 4) > RHEL_RELEASE_CODE
+		return cdev_aio_read(iocb, io->iov, io->nr_segs, iocb->ki_pos);
+	#else
+		return cdev_aio_read(iocb, iter_iov(io), io->nr_segs,
+							iocb->ki_pos);
+	#endif
+#else
+	#if KERNEL_VERSION(6, 4, 0) > LINUX_VERSION_CODE
+		return cdev_aio_read(iocb, io->iov, io->nr_segs, iocb->ki_pos);
+	#else
+		return cdev_aio_read(iocb, iter_iov(io), io->nr_segs,
+							iocb->ki_pos);
+	#endif
+#endif
 }
 #endif
 
@@ -733,6 +775,10 @@ int qdma_cdev_device_init(struct qdma_cdev_cb *xcb)
 	xdev = (struct xlnx_dma_dev *)xcb->xpdev->dev_hndl;
 	list_for_each_entry_safe(phy_dev, tmp, &xlnx_phy_dev_list, list_head) {
 		if (phy_dev->device_bus == xcb->xpdev->pdev->bus->number &&
+#ifdef CONFIG_PCI_DOMAINS_GENERIC
+			phy_dev->device_bus_domain ==
+				xcb->xpdev->pdev->bus->domain_nr &&
+#endif
 			phy_dev->dma_device_index == xdev->dma_device_index) {
 			xcb->cdev_major = phy_dev->major;
 			mutex_unlock(&xlnx_phy_dev_mutex);
@@ -758,6 +804,9 @@ int qdma_cdev_device_init(struct qdma_cdev_cb *xcb)
 
 	new_phy_dev->major = xcb->cdev_major;
 	new_phy_dev->device_bus = xcb->xpdev->pdev->bus->number;
+#ifdef CONFIG_PCI_DOMAINS_GENERIC
+	new_phy_dev->device_bus_domain = xcb->xpdev->pdev->bus->domain_nr;
+#endif
 	new_phy_dev->dma_device_index = xdev->dma_device_index;
 	xlnx_phy_dev_list_add(new_phy_dev);
 
@@ -770,7 +819,19 @@ int qdma_cdev_device_init(struct qdma_cdev_cb *xcb)
 
 int qdma_cdev_init(void)
 {
-	qdma_class = class_create(THIS_MODULE, QDMA_CDEV_CLASS_NAME);
+#ifdef RHEL_RELEASE_VERSION
+	#if RHEL_RELEASE_VERSION(9, 4) > RHEL_RELEASE_CODE
+		qdma_class = class_create(THIS_MODULE, QDMA_CDEV_CLASS_NAME);
+	#else
+		qdma_class = class_create(QDMA_CDEV_CLASS_NAME);
+	#endif
+#else
+	#if KERNEL_VERSION(6, 4, 0) > LINUX_VERSION_CODE
+		qdma_class = class_create(THIS_MODULE, QDMA_CDEV_CLASS_NAME);
+	#else
+		qdma_class = class_create(QDMA_CDEV_CLASS_NAME);
+	#endif
+#endif
 	if (IS_ERR(qdma_class)) {
 		pr_err("%s: failed to create class 0x%lx.",
 			QDMA_CDEV_CLASS_NAME, (unsigned long)qdma_class);

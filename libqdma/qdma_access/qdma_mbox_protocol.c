@@ -1,5 +1,6 @@
 /*
- * Copyright(c) 2019-2020 Xilinx, Inc. All rights reserved.
+ * Copyright (c) 2019-2022, Xilinx, Inc. All rights reserved.
+ * Copyright (c) 2022-2024, Advanced Micro Devices, Inc. All rights reserved.
  *
  * This source code is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -609,22 +610,27 @@ static int mbox_compose_cmpt_context(void *dev_hndl,
 	/* writeback context */
 
 	cmpt_ctxt->bs_addr = qctxt->descq_conf.cmpt_ring_bs_addr;
-	cmpt_ctxt->en_stat_desc = qctxt->descq_conf.cmpl_stat_en;
-	cmpt_ctxt->en_int = qctxt->descq_conf.cmpt_int_en;
-	cmpt_ctxt->trig_mode = qctxt->descq_conf.triggermode;
-	cmpt_ctxt->fnc_id = qctxt->descq_conf.func_id;
-	cmpt_ctxt->timer_idx = tmr_idx;
-	cmpt_ctxt->counter_idx = cntr_idx;
-	cmpt_ctxt->color = 1;
-	cmpt_ctxt->ringsz_idx = rng_idx;
+	cmpt_ctxt->lower_dword.bit.en_stat_desc =
+				qctxt->descq_conf.cmpl_stat_en;
+	cmpt_ctxt->lower_dword.bit.en_int = qctxt->descq_conf.cmpt_int_en;
+	cmpt_ctxt->lower_dword.bit.trig_mode = qctxt->descq_conf.triggermode;
+	cmpt_ctxt->lower_dword.bit.fnc_id = qctxt->descq_conf.func_id;
+	cmpt_ctxt->lower_dword.bit.timer_idx = tmr_idx;
+	cmpt_ctxt->lower_dword.bit.counter_idx = cntr_idx;
+	cmpt_ctxt->lower_dword.bit.color = 1;
+	cmpt_ctxt->lower_dword.bit.ringsz_idx = rng_idx;
 
-	cmpt_ctxt->desc_sz = qctxt->descq_conf.cmpt_desc_sz;
+	cmpt_ctxt->higher_dword.bit.desc_sz = qctxt->descq_conf.cmpt_desc_sz;
 
-	cmpt_ctxt->valid = 1;
+	cmpt_ctxt->higher_dword.bit.valid = 1;
 
-	cmpt_ctxt->ovf_chk_dis = qctxt->descq_conf.dis_overflow_check;
-	cmpt_ctxt->vec = qctxt->descq_conf.intr_id;
-	cmpt_ctxt->int_aggr = qctxt->descq_conf.intr_aggr;
+	if ((qctxt->st) && (qctxt->c2h))
+		cmpt_ctxt->higher_dword.bit.dir_c2h = 1;
+
+	cmpt_ctxt->higher_dword.bit.ovf_chk_dis =
+		qctxt->descq_conf.dis_overflow_check;
+	cmpt_ctxt->higher_dword.bit.vec = qctxt->descq_conf.intr_id;
+	cmpt_ctxt->higher_dword.bit.int_aggr = qctxt->descq_conf.intr_aggr;
 
 	return QDMA_SUCCESS;
 }
@@ -922,8 +928,8 @@ static int mbox_write_queue_contexts(void *dev_hndl, uint8_t dma_device_index,
 	return QDMA_SUCCESS;
 }
 
-static int mbox_read_queue_contexts(void *dev_hndl, uint16_t qid_hw,
-			uint8_t st, uint8_t c2h,
+static int mbox_read_queue_contexts(void *dev_hndl, uint16_t func_id,
+			uint16_t qid_hw, uint8_t st, uint8_t c2h,
 			enum mbox_cmpt_ctxt_type cmpt_ctxt_type,
 			struct qdma_descq_context *ctxt)
 {
@@ -952,6 +958,14 @@ static int mbox_read_queue_contexts(void *dev_hndl, uint16_t qid_hw,
 				      QDMA_HW_ACCESS_READ);
 	if (rv < 0) {
 		qdma_log_error("%s: read credit ctxt, err:%d\n",
+					__func__, rv);
+		return rv;
+	}
+
+	rv = hw->qdma_fmap_conf(dev_hndl, func_id, &ctxt->fmap,
+				      QDMA_HW_ACCESS_READ);
+	if (rv < 0) {
+		qdma_log_error("%s: read fmap ctxt, err:%d\n",
 					__func__, rv);
 		return rv;
 	}
@@ -1323,7 +1337,8 @@ int qdma_mbox_pf_rcv_msg_handler(void *dev_hndl, uint8_t dma_device_index,
 	{
 		struct mbox_msg_qctxt *qctxt = &rcv->qctxt;
 
-		rv = mbox_read_queue_contexts(dev_hndl, qctxt->qid_hw,
+		rv = mbox_read_queue_contexts(dev_hndl, hdr->src_func_id,
+						qctxt->qid_hw,
 						qctxt->st,
 						qctxt->c2h,
 						qctxt->cmpt_ctxt_type,

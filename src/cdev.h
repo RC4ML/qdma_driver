@@ -33,8 +33,8 @@
 
 /** QDMA character device class name */
 #define QDMA_CDEV_CLASS_NAME  DRV_MODULE_NAME
-/** QDMA character device max minor number*/
-#define QDMA_MINOR_MAX (2048)
+/** QDMA character device max minor number to support 4k queues */
+#define QDMA_MINOR_MAX (4096)
 
 /* per pci device control */
 /**
@@ -90,7 +90,7 @@ struct qdma_cdev {
 	ssize_t (*fp_aiorw)(unsigned long dev_hndl, unsigned long qhndl,
 			unsigned long count, struct qdma_request **reqv);
 	/** name of the character device*/
-	char name[0];
+	char name[QDMA_QUEUE_NAME_MAXLEN];
 };
 
 /**
