@@ -199,6 +199,7 @@ int main(int argc, char *argv[])
 	rv = parse_cmd(argc, argv, &xcmd);
 	if (rv < 0)
 		return rv;
+
 	rv = xnl_proc_cmd(&xcmd);
 	if (rv < 0)
 		return rv;

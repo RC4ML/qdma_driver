@@ -296,7 +296,6 @@ enum xnl_op_t {
 	XNL_CMD_REG_DUMP,	/**< dump the register information */
 	XNL_CMD_REG_RD,		/**< read a register value */
 	XNL_CMD_REG_WRT,	/**< write value to a register */
-	XNL_CMD_REG_INFO_READ,
 
 	XNL_CMD_Q_LIST,		/**< list all the queue present in the system */
 	XNL_CMD_Q_ADD,		/**< add a queue */
@@ -317,6 +316,10 @@ enum xnl_op_t {
 	XNL_CMD_GLOBAL_CSR,	/**< get all global csr register values */
 	XNL_CMD_DEV_CAP,	/**< list h/w capabilities , hw and sw version */
 	XNL_CMD_GET_Q_STATE,	/**< get the queue state */
+	XNL_CMD_REG_INFO_READ,  /**< read register info */
+#ifdef TANDEM_BOOT_SUPPORTED
+	XNL_CMD_EN_ST,  	/**< Enable Streaming */
+#endif
 	XNL_CMD_MAX,		/**< max number of XNL commands*/
 };
 

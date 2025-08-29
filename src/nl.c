@@ -1539,6 +1539,7 @@ static int xnl_q_list(struct sk_buff *skb2, struct genl_info *info)
 	}
 
 	qmax = q_count.h2c_qcnt + q_count.c2h_qcnt;
+	pr_info("xnl_q_list qmax: %d\n", qmax);
 	if (!qmax) {
 		rv += snprintf(buf, 8, "Zero Qs\n\n");
 		goto send_rsp;
@@ -1608,6 +1609,8 @@ static int xnl_q_add(struct sk_buff *skb2, struct genl_info *info)
 		return -ENOMEM;
 	cur = buf;
 	end = buf + buf_len;
+
+	pr_info("xnl_q_add qmax: %d\n", qdma_get_qmax(xpdev->dev_hndl));
 
 	if (unlikely(!qdma_get_qmax(xpdev->dev_hndl))) {
 		pr_info("0 sized Qs\n");
@@ -1714,6 +1717,8 @@ static int xnl_q_start(struct sk_buff *skb2, struct genl_info *info)
 	if (!xpdev)
 		return 0;
 
+	pr_info("xnl_q_start qmax: %d\n", qdma_get_qmax(xpdev->dev_hndl));
+
 	if (unlikely(!qdma_get_qmax(xpdev->dev_hndl))) {
 		rv += snprintf(buf, 8, "Zero Qs\n");
 		goto send_resp;
@@ -1819,6 +1824,8 @@ static int xnl_q_stop(struct sk_buff *skb2, struct genl_info *info)
 	if (!xpdev)
 		return 0;
 
+	pr_info("xnl_q_stop qmax: %d\n", qdma_get_qmax(xpdev->dev_hndl));
+
 	if (unlikely(!qdma_get_qmax(xpdev->dev_hndl))) {
 		rv += snprintf(buf, 8, "Zero Qs\n");
 		goto send_resp;
@@ -1891,6 +1898,8 @@ static int xnl_q_del(struct sk_buff *skb2, struct genl_info *info)
 	xpdev = xnl_rcv_check_xpdev(info);
 	if (!xpdev)
 		return 0;
+
+	pr_info("xnl_q_del qmax: %d\n", qdma_get_qmax(xpdev->dev_hndl));
 
 	if (unlikely(!qdma_get_qmax(xpdev->dev_hndl))) {
 		rv += snprintf(buf, 8, "Zero Qs\n");
