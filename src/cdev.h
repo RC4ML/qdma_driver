@@ -57,7 +57,7 @@ struct qdma_cdev_cb {
  * @brief	QDMA character device book keeping parameters
  */
 struct qdma_cdev {
-	/** lsit of qdma character devices */
+	/** list of qdma character devices */
 	struct list_head list_head;
 	/** minor number */
 	int minor;

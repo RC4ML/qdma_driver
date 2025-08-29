@@ -17,7 +17,7 @@
  * the file called "COPYING".
  */
 
-#define pr_fmt(fmt)	KBUILD_MODNAME ":%s: " fmt, __func__
+#define pr_fmt(fmt) KBUILD_MODNAME ":%s: " fmt, __func__
 
 #include "qdma_mod.h"
 
@@ -62,8 +62,7 @@ MODULE_PARM_DESC(master_pf, "specify the master_pf, dflt is 0, format is \"<bus_
 static unsigned int num_threads;
 module_param(num_threads, uint, 0644);
 MODULE_PARM_DESC(num_threads,
-"Number of threads to be created each for request and writeback processing");
-
+				 "Number of threads to be created each for request and writeback processing");
 
 #include "pci_ids.h"
 
@@ -76,7 +75,7 @@ static DEFINE_MUTEX(xpdev_mutex);
 static int xpdev_qdata_realloc(struct xlnx_pci_dev *xpdev, unsigned int qmax);
 
 static int xpdev_map_bar(struct xlnx_pci_dev *xpdev,
-		void __iomem **regs, u8 bar_num);
+						 void __iomem **regs, u8 bar_num);
 static void xpdev_unmap_bar(struct xlnx_pci_dev *xpdev, void __iomem **regs);
 
 #ifdef __QDMA_VF__
@@ -99,7 +98,7 @@ void qdma_flr_resource_free(unsigned long dev_hndl);
  *
  *****************************************************************************/
 static ssize_t show_intr_rngsz(struct device *dev,
-	struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	struct xlnx_pci_dev *xpdev;
 	int len;
@@ -134,7 +133,7 @@ static ssize_t show_intr_rngsz(struct device *dev,
  *
  *****************************************************************************/
 static ssize_t set_intr_rngsz(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t count)
+							  struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct xlnx_pci_dev *xpdev;
 	unsigned int rngsz = 0;
@@ -145,11 +144,11 @@ static ssize_t set_intr_rngsz(struct device *dev,
 		return -EINVAL;
 
 	err = kstrtouint(buf, 0, &rngsz);
-	if (err < 0) {
+	if (err < 0)
+	{
 		pr_err("failed to set interrupt ring size\n");
 		return err;
 	}
-
 
 	err = qdma_set_intr_rngsz(xpdev->dev_hndl, (u32)rngsz);
 	return err ? err : count;
@@ -171,7 +170,7 @@ static ssize_t set_intr_rngsz(struct device *dev,
  *
  *****************************************************************************/
 static ssize_t show_qmax(struct device *dev,
-	struct device_attribute *attr, char *buf)
+						 struct device_attribute *attr, char *buf)
 {
 	struct xlnx_pci_dev *xpdev;
 	int len;
@@ -191,7 +190,7 @@ static ssize_t show_qmax(struct device *dev,
 
 #ifndef __QDMA_VF__
 static ssize_t set_qmax(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t count)
+						struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct xlnx_pci_dev *xpdev;
 	unsigned int qmax = 0;
@@ -201,7 +200,8 @@ static ssize_t set_qmax(struct device *dev,
 	if (!xpdev)
 		return -EINVAL;
 	err = kstrtouint(buf, 0, &qmax);
-	if (err < 0) {
+	if (err < 0)
+	{
 		pr_err("failed to set qmax to %d\n", qmax);
 		return err;
 	}
@@ -229,7 +229,7 @@ static ssize_t set_qmax(struct device *dev,
  *
  *****************************************************************************/
 static ssize_t show_cmpl_status_acc(struct device *dev,
-	struct device_attribute *attr, char *buf)
+									struct device_attribute *attr, char *buf)
 {
 	struct xlnx_pci_dev *xpdev;
 	int len;
@@ -241,10 +241,10 @@ static ssize_t show_cmpl_status_acc(struct device *dev,
 
 	cmpl_status_acc = qdma_get_wb_intvl(xpdev->dev_hndl);
 	len = scnprintf(buf, PAGE_SIZE,
-			"%u\n", cmpl_status_acc);
+					"%u\n", cmpl_status_acc);
 	if (len <= 0)
 		pr_err("copying cmpl status acc value to buf failed with err: %d\n",
-				len);
+			   len);
 
 	return len;
 }
@@ -266,7 +266,7 @@ static ssize_t show_cmpl_status_acc(struct device *dev,
  *
  *****************************************************************************/
 static ssize_t set_cmpl_status_acc(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t count)
+								   struct device_attribute *attr, const char *buf, size_t count)
 {
 #ifdef QDMA_CSR_REG_UPDATE
 	struct pci_dev *pdev = to_pci_dev(dev);
@@ -282,9 +282,10 @@ static ssize_t set_cmpl_status_acc(struct device *dev,
 		return -EINVAL;
 
 	err = kstrtoint(buf, 0, &cmpl_status_acc);
-	if (err < 0) {
+	if (err < 0)
+	{
 		pr_err("failed to set cmpl status accumulator to %d\n",
-				cmpl_status_acc);
+			   cmpl_status_acc);
 		return err;
 	}
 
@@ -313,7 +314,7 @@ static ssize_t set_cmpl_status_acc(struct device *dev,
  *****************************************************************************/
 
 static ssize_t show_c2h_buf_sz(struct device *dev,
-		struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	struct xlnx_pci_dev *xpdev;
 	int len = 0;
@@ -329,7 +330,7 @@ static ssize_t show_c2h_buf_sz(struct device *dev,
 	len += scnprintf(buf + len, PAGE_SIZE - len, "%u", c2h_buf_sz[0]);
 	for (i = 1; i < QDMA_GLOBAL_CSR_ARRAY_SZ; i++)
 		len += scnprintf(buf + len,
-					PAGE_SIZE - len, " %u", c2h_buf_sz[i]);
+						 PAGE_SIZE - len, " %u", c2h_buf_sz[i]);
 	len += scnprintf(buf + len, PAGE_SIZE - len, "%s", "\n\0");
 
 	return len;
@@ -353,14 +354,14 @@ static ssize_t show_c2h_buf_sz(struct device *dev,
  *****************************************************************************/
 
 static ssize_t set_c2h_buf_sz(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
+							  struct device_attribute *attr, const char *buf, size_t count)
 {
 #ifdef QDMA_CSR_REG_UPDATE
 	struct pci_dev *pdev = to_pci_dev(dev);
 	struct xlnx_pci_dev *xpdev;
 	int err = 0;
 	char *s = (char *)buf, *p = NULL;
-	const char *tc = " ";   /* token character here is a "space" */
+	const char *tc = " "; /* token character here is a "space" */
 	unsigned int c2h_buf_sz[QDMA_GLOBAL_CSR_ARRAY_SZ] = {0};
 	int i = 0;
 
@@ -378,7 +379,8 @@ static ssize_t set_c2h_buf_sz(struct device *dev,
 	qdma_get_buf_sz(xpdev->dev_hndl, c2h_buf_sz);
 
 	while (((p = strsep(&s, tc)) != NULL) &&
-			(i < QDMA_GLOBAL_CSR_ARRAY_SZ)) {
+		   (i < QDMA_GLOBAL_CSR_ARRAY_SZ))
+	{
 		if (*p == 0)
 			continue;
 
@@ -389,7 +391,8 @@ static ssize_t set_c2h_buf_sz(struct device *dev,
 		i++;
 	}
 
-	if (p) {
+	if (p)
+	{
 		/*
 		 * check if the number of entries are more than 16 !
 		 * if yes, ignore the extra values
@@ -424,7 +427,7 @@ input_err:
  *****************************************************************************/
 
 static ssize_t show_glbl_rng_sz(struct device *dev,
-	struct device_attribute *attr, char *buf)
+								struct device_attribute *attr, char *buf)
 {
 	struct xlnx_pci_dev *xpdev;
 	struct xlnx_dma_dev *xdev = NULL;
@@ -441,8 +444,8 @@ static ssize_t show_glbl_rng_sz(struct device *dev,
 	len += scnprintf(buf + len, PAGE_SIZE - len, "%u", glbl_ring_sz[0]);
 	for (i = 1; i < QDMA_GLOBAL_CSR_ARRAY_SZ; i++)
 		len += scnprintf(buf + len,
-					PAGE_SIZE - len,
-					" %u", glbl_ring_sz[i]);
+						 PAGE_SIZE - len,
+						 " %u", glbl_ring_sz[i]);
 	len += scnprintf(buf + len, PAGE_SIZE - len, "%s", "\n\0");
 
 	return len;
@@ -466,14 +469,14 @@ static ssize_t show_glbl_rng_sz(struct device *dev,
  *****************************************************************************/
 
 static ssize_t set_glbl_rng_sz(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t count)
+							   struct device_attribute *attr, const char *buf, size_t count)
 {
 #ifdef QDMA_CSR_REG_UPDATE
 	struct pci_dev *pdev = to_pci_dev(dev);
 	struct xlnx_pci_dev *xpdev;
 	int err = 0;
 	char *s = (char *)buf, *p = NULL;
-	const char *tc = " ";   /* token character here is a "space" */
+	const char *tc = " "; /* token character here is a "space" */
 	unsigned int glbl_ring_sz[QDMA_GLOBAL_CSR_ARRAY_SZ] = {0};
 	int i = 0;
 
@@ -491,7 +494,8 @@ static ssize_t set_glbl_rng_sz(struct device *dev,
 	qdma_get_glbl_rng_sz(xpdev->dev_hndl, glbl_ring_sz);
 
 	while (((p = strsep(&s, tc)) != NULL) &&
-			(i < QDMA_GLOBAL_CSR_ARRAY_SZ)) {
+		   (i < QDMA_GLOBAL_CSR_ARRAY_SZ))
+	{
 		if (*p == 0)
 			continue;
 
@@ -502,7 +506,8 @@ static ssize_t set_glbl_rng_sz(struct device *dev,
 		i++;
 	}
 
-	if (p) {
+	if (p)
+	{
 		/*
 		 * check if the number of entries are more than 16 !
 		 * if yes, ignore the extra values
@@ -536,7 +541,7 @@ input_err:
  *
  *****************************************************************************/
 static ssize_t show_c2h_timer_cnt(struct device *dev,
-	struct device_attribute *attr, char *buf)
+								  struct device_attribute *attr, char *buf)
 {
 	struct xlnx_pci_dev *xpdev;
 	int len = 0;
@@ -552,8 +557,8 @@ static ssize_t show_c2h_timer_cnt(struct device *dev,
 	len += scnprintf(buf + len, PAGE_SIZE - len, "%u", c2h_timer_cnt[0]);
 	for (i = 1; i < QDMA_GLOBAL_CSR_ARRAY_SZ; i++)
 		len += scnprintf(buf + len,
-					PAGE_SIZE - len,
-					" %u", c2h_timer_cnt[i]);
+						 PAGE_SIZE - len,
+						 " %u", c2h_timer_cnt[i]);
 	len += scnprintf(buf + len, PAGE_SIZE - len, "%s", "\n\0");
 
 	return len;
@@ -576,14 +581,14 @@ static ssize_t show_c2h_timer_cnt(struct device *dev,
  *
  *****************************************************************************/
 static ssize_t set_c2h_timer_cnt(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t count)
+								 struct device_attribute *attr, const char *buf, size_t count)
 {
 #ifdef QDMA_CSR_REG_UPDATE
 	struct pci_dev *pdev = to_pci_dev(dev);
 	struct xlnx_pci_dev *xpdev;
 	int err = 0;
 	char *s = (char *)buf, *p = NULL;
-	const char *tc = " ";	/* token character here is a "space" */
+	const char *tc = " "; /* token character here is a "space" */
 	unsigned int c2h_timer_cnt[QDMA_GLOBAL_CSR_ARRAY_SZ] = {0};
 	int i = 0;
 
@@ -601,7 +606,8 @@ static ssize_t set_c2h_timer_cnt(struct device *dev,
 	qdma_get_timer_cnt(xpdev->dev_hndl, c2h_timer_cnt);
 
 	while (((p = strsep(&s, tc)) != NULL) &&
-			(i < QDMA_GLOBAL_CSR_ARRAY_SZ)) {
+		   (i < QDMA_GLOBAL_CSR_ARRAY_SZ))
+	{
 		if (*p == 0)
 			continue;
 
@@ -609,16 +615,18 @@ static ssize_t set_c2h_timer_cnt(struct device *dev,
 		if (err < 0)
 			goto input_err;
 
-		if (c2h_timer_cnt[i] > 255) {
+		if (c2h_timer_cnt[i] > 255)
+		{
 			pr_warn("timer cnt at index %d is %d - out of range [0-255]\n",
-				i, c2h_timer_cnt[i]);
+					i, c2h_timer_cnt[i]);
 			err = -EINVAL;
 			goto input_err;
 		}
 		i++;
 	}
 
-	if (p) {
+	if (p)
+	{
 		/*
 		 * check if the number of entries are more than 16 !
 		 * if yes, ignore the extra values
@@ -651,7 +659,7 @@ input_err:
  *
  *****************************************************************************/
 static ssize_t show_c2h_cnt_th(struct device *dev,
-			struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	struct xlnx_pci_dev *xpdev;
 	int len = 0;
@@ -665,12 +673,12 @@ static ssize_t show_c2h_cnt_th(struct device *dev,
 	qdma_get_cnt_thresh(xpdev->dev_hndl, c2h_cnt_th);
 
 	len += scnprintf(buf + len,
-				PAGE_SIZE - len, "%u", c2h_cnt_th[0]);
+					 PAGE_SIZE - len, "%u", c2h_cnt_th[0]);
 	for (i = 1; i < QDMA_GLOBAL_CSR_ARRAY_SZ; i++)
 		len += scnprintf(buf + len,
-				PAGE_SIZE - len, " %u", c2h_cnt_th[i]);
+						 PAGE_SIZE - len, " %u", c2h_cnt_th[i]);
 	len += scnprintf(buf + len,
-				PAGE_SIZE - len, "%s", "\n\0");
+					 PAGE_SIZE - len, "%s", "\n\0");
 
 	return len;
 }
@@ -692,14 +700,14 @@ static ssize_t show_c2h_cnt_th(struct device *dev,
  *
  *****************************************************************************/
 static ssize_t set_c2h_cnt_th(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t count)
+							  struct device_attribute *attr, const char *buf, size_t count)
 {
 #ifdef QDMA_CSR_REG_UPDATE
 	struct pci_dev *pdev = to_pci_dev(dev);
 	struct xlnx_pci_dev *xpdev;
 	int err = 0;
 	char *s = (char *)buf, *p = NULL;
-	const char *tc = " ";	/* token character here is a "space" */
+	const char *tc = " "; /* token character here is a "space" */
 	unsigned int c2h_cnt_th[QDMA_GLOBAL_CSR_ARRAY_SZ] = {0};
 	int i = 0;
 
@@ -717,7 +725,8 @@ static ssize_t set_c2h_cnt_th(struct device *dev,
 	qdma_get_cnt_thresh(xpdev->dev_hndl, c2h_cnt_th);
 
 	while (((p = strsep(&s, tc)) != NULL) &&
-			(i < QDMA_GLOBAL_CSR_ARRAY_SZ)) {
+		   (i < QDMA_GLOBAL_CSR_ARRAY_SZ))
+	{
 		if (*p == 0)
 			continue;
 
@@ -725,16 +734,18 @@ static ssize_t set_c2h_cnt_th(struct device *dev,
 		if (err < 0)
 			goto input_err;
 
-		if (c2h_cnt_th[i] > 255) {
+		if (c2h_cnt_th[i] > 255)
+		{
 			pr_warn("counter threshold at index %d is %d - out of range [0-255]\n",
-				i, c2h_cnt_th[i]);
+					i, c2h_cnt_th[i]);
 			err = -EINVAL;
 			goto input_err;
 		}
 		i++;
 	}
 
-	if (p) {
+	if (p)
+	{
 		/*
 		 * check if the number of entries are more than 16 !
 		 * if yes, ignore the extra values
@@ -768,7 +779,7 @@ input_err:
  *****************************************************************************/
 
 static ssize_t set_qmax(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
+						struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct xlnx_pci_dev *_xpdev;
 	unsigned int qmax = 0;
@@ -779,7 +790,8 @@ static ssize_t set_qmax(struct device *dev,
 		return -EINVAL;
 
 	err = kstrtouint(buf, 0, &qmax);
-	if (err < 0) {
+	if (err < 0)
+	{
 		pr_err("Failed to set qmax\n");
 		return err;
 	}
@@ -788,7 +800,8 @@ static ssize_t set_qmax(struct device *dev,
 	if (err < 0)
 		return err;
 
-	if (!err) {
+	if (!err)
+	{
 		pr_debug("Succesfully reconfigured qdmavf%05x\n", _xpdev->idx);
 		xpdev_qdata_realloc(_xpdev, qmax);
 	}
@@ -799,48 +812,48 @@ static ssize_t set_qmax(struct device *dev,
 
 static DEVICE_ATTR(qmax, S_IWUSR | S_IRUGO, show_qmax, set_qmax);
 static DEVICE_ATTR(intr_rngsz, S_IWUSR | S_IRUGO,
-			show_intr_rngsz, set_intr_rngsz);
+				   show_intr_rngsz, set_intr_rngsz);
 #ifndef __QDMA_VF__
 static DEVICE_ATTR(buf_sz, S_IWUSR | S_IRUGO,
-		show_c2h_buf_sz, set_c2h_buf_sz);
+				   show_c2h_buf_sz, set_c2h_buf_sz);
 static DEVICE_ATTR(glbl_rng_sz, S_IWUSR | S_IRUGO,
-		show_glbl_rng_sz, set_glbl_rng_sz);
+				   show_glbl_rng_sz, set_glbl_rng_sz);
 static DEVICE_ATTR(c2h_timer_cnt, S_IWUSR | S_IRUGO,
-			show_c2h_timer_cnt, set_c2h_timer_cnt);
+				   show_c2h_timer_cnt, set_c2h_timer_cnt);
 static DEVICE_ATTR(c2h_cnt_th, S_IWUSR | S_IRUGO,
-			show_c2h_cnt_th, set_c2h_cnt_th);
+				   show_c2h_cnt_th, set_c2h_cnt_th);
 static DEVICE_ATTR(cmpl_status_acc, S_IWUSR | S_IRUGO,
-		show_cmpl_status_acc, set_cmpl_status_acc);
+				   show_cmpl_status_acc, set_cmpl_status_acc);
 #endif
 
 static struct attribute *pci_device_attrs[] = {
-		&dev_attr_qmax.attr,
-		&dev_attr_intr_rngsz.attr,
-		NULL,
+	&dev_attr_qmax.attr,
+	&dev_attr_intr_rngsz.attr,
+	NULL,
 };
 
 static struct attribute *pci_master_device_attrs[] = {
-		&dev_attr_qmax.attr,
-		&dev_attr_intr_rngsz.attr,
+	&dev_attr_qmax.attr,
+	&dev_attr_intr_rngsz.attr,
 #ifndef __QDMA_VF__
-		&dev_attr_buf_sz.attr,
-		&dev_attr_glbl_rng_sz.attr,
-		&dev_attr_c2h_timer_cnt.attr,
-		&dev_attr_c2h_cnt_th.attr,
-		&dev_attr_cmpl_status_acc.attr,
+	&dev_attr_buf_sz.attr,
+	&dev_attr_glbl_rng_sz.attr,
+	&dev_attr_c2h_timer_cnt.attr,
+	&dev_attr_c2h_cnt_th.attr,
+	&dev_attr_cmpl_status_acc.attr,
 #endif
-		NULL,
+	NULL,
 };
 
 static struct attribute_group pci_device_attr_group = {
-		.name  = "qdma",
-		.attrs = pci_device_attrs,
+	.name = "qdma",
+	.attrs = pci_device_attrs,
 
 };
 
 static struct attribute_group pci_master_device_attr_group = {
-		.name  = "qdma",
-		.attrs = pci_master_device_attrs,
+	.name = "qdma",
+	.attrs = pci_master_device_attrs,
 
 };
 
@@ -870,16 +883,18 @@ int xpdev_list_dump(char *buf, int buflen)
 		return -EINVAL;
 
 	mutex_lock(&xpdev_mutex);
-	list_for_each_entry_safe(xpdev, tmp, &xpdev_list, list_head) {
+	list_for_each_entry_safe(xpdev, tmp, &xpdev_list, list_head)
+	{
 		struct pci_dev *pdev;
 		struct qdma_dev_conf conf;
 		int rv;
 
 		rv = qdma_device_get_config(xpdev->dev_hndl, &conf, NULL, 0);
-		if (rv < 0) {
+		if (rv < 0)
+		{
 			cur += snprintf(cur, cur - end,
-			"ERR! unable to get device config for idx %05x\n",
-			xpdev->idx);
+							"ERR! unable to get device config for idx %05x\n",
+							xpdev->idx);
 			if (cur >= end)
 				goto handle_truncation;
 			break;
@@ -892,24 +907,27 @@ int xpdev_list_dump(char *buf, int buflen)
 			base_end = 0;
 		qmax_val = conf.qsets_max;
 
-		if (qmax_val) {
+		if (qmax_val)
+		{
 			cur += snprintf(cur, end - cur,
 #ifdef __QDMA_VF__
-					"qdmavf%05x\t%s\tmax QP: %d, %d~%d\n",
+							"qdmavf%05x\t%s\tmax QP: %d, %d~%d\n",
 #else
-					"qdma%05x\t%s\tmax QP: %d, %d~%d\n",
+							"qdma%05x\t%s\tmax QP: %d, %d~%d\n",
 #endif
-					xpdev->idx, dev_name(&pdev->dev),
-					qmax_val, conf.qsets_base,
-					base_end);
-		} else {
+							xpdev->idx, dev_name(&pdev->dev),
+							qmax_val, conf.qsets_base,
+							base_end);
+		}
+		else
+		{
 			cur += snprintf(cur, end - cur,
 #ifdef __QDMA_VF__
-					"qdmavf%05x\t%s\tmax QP: 0, -~-\n",
+							"qdmavf%05x\t%s\tmax QP: 0, -~-\n",
 #else
-					"qdma%05x\t%s\tmax QP: 0, -~-\n",
+							"qdma%05x\t%s\tmax QP: 0, -~-\n",
 #endif
-					xpdev->idx, dev_name(&pdev->dev));
+							xpdev->idx, dev_name(&pdev->dev));
 		}
 		if (cur >= end)
 			goto handle_truncation;
@@ -933,15 +951,18 @@ static bool is_first_pfdev(u8 bus_number)
 	struct xlnx_pci_dev *_xpdev, *tmp;
 
 	mutex_lock(&xpdev_mutex);
-	if (list_empty(&xpdev_list)) {
+	if (list_empty(&xpdev_list))
+	{
 		mutex_unlock(&xpdev_mutex);
 		return 1;
 	}
 
-	list_for_each_entry_safe(_xpdev, tmp, &xpdev_list, list_head) {
+	list_for_each_entry_safe(_xpdev, tmp, &xpdev_list, list_head)
+	{
 		struct pci_dev *pdev = _xpdev->pdev;
 		/** find first bus and device are matching */
-		if (pdev->bus->number == bus_number) {
+		if (pdev->bus->number == bus_number)
+		{
 			mutex_unlock(&xpdev_mutex);
 			/** if func matches, it returns 1, else 0*/
 			return 0;
@@ -961,7 +982,7 @@ static bool is_first_pfdev(u8 bus_number)
  * @return	device mode
  *****************************************************************************/
 static u8 extract_mod_param(struct pci_dev *pdev,
-		enum qdma_drv_mod_param_type param_type)
+							enum qdma_drv_mod_param_type param_type)
 {
 	char p[600];
 	char *ptr, *mod;
@@ -971,61 +992,73 @@ static u8 extract_mod_param(struct pci_dev *pdev,
 	u16 device_id = pdev->device;
 #endif
 
-
 	/* Fetch param specified in the module parameter */
 	ptr = p;
-	if (param_type == DRV_MODE) {
+	if (param_type == DRV_MODE)
+	{
 		if (mode[0] == '\0')
 			return 0;
 		strncpy(p, mode, sizeof(p) - 1);
-	} else if (param_type == CONFIG_BAR) {
+	}
+	else if (param_type == CONFIG_BAR)
+	{
 		if (config_bar[0] == '\0')
 			return 0;
 		strncpy(p, config_bar, sizeof(p) - 1);
-	} else if (param_type == MASTER_PF) {
+	}
+	else if (param_type == MASTER_PF)
+	{
 		if (master_pf[0] == '\0')
 			return is_first_pfdev(pdev->bus->number);
 		strncpy(p, master_pf, sizeof(p) - 1);
-	} else {
+	}
+	else
+	{
 		pr_err("Invalid module param type received\n");
 		return -EINVAL;
 	}
 
-	while ((mod = strsep(&ptr, ","))) {
+	while ((mod = strsep(&ptr, ",")))
+	{
 		unsigned int bus_num, func_num, param = 0;
 		int fields;
 
 		if (!strlen(mod))
 			continue;
 
-		if (param_type == MASTER_PF) {
+		if (param_type == MASTER_PF)
+		{
 			fields = sscanf(mod, "%x:%x", &bus_num, &param);
 
-			if (fields != 2) {
+			if (fields != 2)
+			{
 				pr_warn("invalid mode string \"%s\"\n", mod);
 				continue;
 			}
 
 			if ((bus_num == pdev->bus->number) &&
-					(dev_fn == param))
+				(dev_fn == param))
 				return 1;
-		} else {
+		}
+		else
+		{
 			fields = sscanf(mod, "%x:%x:%x",
-					&bus_num, &func_num, &param);
+							&bus_num, &func_num, &param);
 
-			if (fields != 3) {
+			if (fields != 3)
+			{
 				pr_warn("invalid mode string \"%s\"\n", mod);
 				continue;
 			}
 
 #ifndef __QDMA_VF__
 			if ((bus_num == pdev->bus->number) &&
-					(func_num == dev_fn))
+				(func_num == dev_fn))
 				return param;
 #else
 			if ((bus_num == pdev->bus->number) &&
 				(((device_id >> VF_PF_IDENTIFIER_SHIFT) &
-					VF_PF_IDENTIFIER_MASK) == func_num))
+				  VF_PF_IDENTIFIER_MASK) == func_num))
 				return param;
 #endif
 		}
@@ -1039,8 +1072,10 @@ struct xlnx_pci_dev *xpdev_find_by_idx(unsigned int idx, char *buf, int buflen)
 	struct xlnx_pci_dev *xpdev, *tmp;
 
 	mutex_lock(&xpdev_mutex);
-	list_for_each_entry_safe(xpdev, tmp, &xpdev_list, list_head) {
-		if (xpdev->idx == idx) {
+	list_for_each_entry_safe(xpdev, tmp, &xpdev_list, list_head)
+	{
+		if (xpdev->idx == idx)
+		{
 			mutex_unlock(&xpdev_mutex);
 			return xpdev;
 		}
@@ -1054,15 +1089,17 @@ struct xlnx_pci_dev *xpdev_find_by_idx(unsigned int idx, char *buf, int buflen)
 }
 
 struct xlnx_qdata *xpdev_queue_get(struct xlnx_pci_dev *xpdev,
-			unsigned int qidx, u8 q_type, bool check_qhndl,
-			char *ebuf, int ebuflen)
+								   unsigned int qidx, u8 q_type, bool check_qhndl,
+								   char *ebuf, int ebuflen)
 {
 	struct xlnx_qdata *qdata;
 
-	if (qidx >= xpdev->qmax) {
+	if (qidx >= xpdev->qmax)
+	{
 		pr_debug("qdma%05x QID %u too big, %05x.\n",
-			xpdev->idx, qidx, xpdev->qmax);
-		if (ebuf && ebuflen) {
+				 xpdev->idx, qidx, xpdev->qmax);
+		if (ebuf && ebuflen)
+		{
 			snprintf(ebuf, ebuflen, "QID %u too big, %u.\n",
 					 qidx, xpdev->qmax);
 		}
@@ -1075,11 +1112,13 @@ struct xlnx_qdata *xpdev_queue_get(struct xlnx_pci_dev *xpdev,
 	if (q_type == Q_CMPT)
 		qdata += (2 * xpdev->qmax);
 
-	if (check_qhndl && (!qdata->qhndl && !qdata->xcdev)) {
+	if (check_qhndl && (!qdata->qhndl && !qdata->xcdev))
+	{
 		pr_debug("qdma%05x QID %u NOT configured.\n", xpdev->idx, qidx);
-		if (ebuf && ebuflen) {
+		if (ebuf && ebuflen)
+		{
 			snprintf(ebuf, ebuflen,
-					"QID %u NOT configured.\n", qidx);
+					 "QID %u NOT configured.\n", qidx);
 		}
 
 		return NULL;
@@ -1089,30 +1128,32 @@ struct xlnx_qdata *xpdev_queue_get(struct xlnx_pci_dev *xpdev,
 }
 
 int xpdev_queue_delete(struct xlnx_pci_dev *xpdev, unsigned int qidx, u8 q_type,
-			char *ebuf, int ebuflen)
+					   char *ebuf, int ebuflen)
 {
 	struct xlnx_qdata *qdata = xpdev_queue_get(xpdev, qidx, q_type, 1, ebuf,
-						ebuflen);
+											   ebuflen);
 	int rv = 0;
 
 	if (!qdata)
 		return -EINVAL;
 
-	if (q_type != Q_CMPT) {
+	if (q_type != Q_CMPT)
+	{
 		if (!qdata->xcdev)
 			return -EINVAL;
 	}
 
 	if (qdata->qhndl != QDMA_QUEUE_IDX_INVALID)
 		rv = qdma_queue_remove(xpdev->dev_hndl, qdata->qhndl,
-					ebuf, ebuflen);
+							   ebuf, ebuflen);
 	else
 		pr_err("qidx %u/%u, type %d, qhndl invalid.\n",
-			qidx, xpdev->qmax, q_type);
+			   qidx, xpdev->qmax, q_type);
 	if (rv < 0)
 		goto exit;
 
-	if (q_type != Q_CMPT) {
+	if (q_type != Q_CMPT)
+	{
 		spin_lock(&xpdev->cdev_lock);
 		qdata->xcdev->dir_init &= ~(1 << (q_type ? 1 : 0));
 		spin_unlock(&xpdev->cdev_lock);
@@ -1131,7 +1172,8 @@ static void xpdev_queue_delete_all(struct xlnx_pci_dev *xpdev)
 {
 	int i;
 
-	for (i = 0; i < xpdev->qmax; i++) {
+	for (i = 0; i < xpdev->qmax; i++)
+	{
 		xpdev_queue_delete(xpdev, i, 0, NULL, 0);
 		xpdev_queue_delete(xpdev, i, 1, NULL, 0);
 	}
@@ -1139,7 +1181,7 @@ static void xpdev_queue_delete_all(struct xlnx_pci_dev *xpdev)
 #endif
 
 int xpdev_queue_add(struct xlnx_pci_dev *xpdev, struct qdma_queue_conf *qconf,
-			char *ebuf, int ebuflen)
+					char *ebuf, int ebuflen)
 {
 	struct xlnx_qdata *qdata;
 	struct qdma_cdev *xcdev = NULL;
@@ -1154,32 +1196,34 @@ int xpdev_queue_add(struct xlnx_pci_dev *xpdev, struct qdma_queue_conf *qconf,
 		return rv;
 
 	pr_debug("qdma%05x idx %u, st %d, q_type %s, added, qhndl 0x%lx.\n",
-		xpdev->idx, qconf->qidx, qconf->st,
-		q_type_list[qconf->q_type].name, qhndl);
+			 xpdev->idx, qconf->qidx, qconf->st,
+			 q_type_list[qconf->q_type].name, qhndl);
 
 	qdata = xpdev_queue_get(xpdev, qconf->qidx, qconf->q_type, 0, ebuf,
-				ebuflen);
-	if (!qdata) {
+							ebuflen);
+	if (!qdata)
+	{
 		pr_err("q added 0x%lx, get failed, idx 0x%x.\n",
-			qhndl, qconf->qidx);
+			   qhndl, qconf->qidx);
 		return rv;
 	}
 
-	if (qconf->q_type != Q_CMPT) {
+	if (qconf->q_type != Q_CMPT)
+	{
 		dir = (qconf->q_type == Q_C2H) ? 0 : 1;
 		spin_lock(&xpdev->cdev_lock);
 		qdata_tmp = xpdev_queue_get(xpdev, qconf->qidx,
-				dir, 0, NULL, 0);
-		if (qdata_tmp) {
+									dir, 0, NULL, 0);
+		if (qdata_tmp)
+		{
 			/* only 1 cdev per queue pair */
-			if (qdata_tmp->xcdev) {
+			if (qdata_tmp->xcdev)
+			{
 				unsigned long *priv_data;
 
 				qdata->qhndl = qhndl;
 				qdata->xcdev = qdata_tmp->xcdev;
-				priv_data = (qconf->q_type == Q_C2H) ?
-						&qdata->xcdev->c2h_qhndl :
-						&qdata->xcdev->h2c_qhndl;
+				priv_data = (qconf->q_type == Q_C2H) ? &qdata->xcdev->c2h_qhndl : &qdata->xcdev->h2c_qhndl;
 				*priv_data = qhndl;
 				qdata->xcdev->dir_init |= (1 << qconf->q_type);
 
@@ -1191,19 +1235,21 @@ int xpdev_queue_add(struct xlnx_pci_dev *xpdev, struct qdma_queue_conf *qconf,
 	}
 
 	rv = qdma_device_get_config(xpdev->dev_hndl, &dev_config, NULL, 0);
-	if (rv < 0) {
+	if (rv < 0)
+	{
 		pr_err("Failed to get conf for qdma device '%05x'\n",
-				xpdev->idx);
+			   xpdev->idx);
 		return rv;
 	}
 
 	/* always create the cdev
 	 * Give HW QID as minor number with qsets_base calculation
 	 */
-	if (qconf->q_type != Q_CMPT) {
+	if (qconf->q_type != Q_CMPT)
+	{
 		rv = qdma_cdev_create(&xpdev->cdev_cb, xpdev->pdev, qconf,
-				(dev_config.qsets_base + qconf->qidx),
-				qhndl, &xcdev, ebuf, ebuflen);
+							  (dev_config.qsets_base + qconf->qidx),
+							  qhndl, &xcdev, ebuf, ebuflen);
 
 		qdata->xcdev = xcdev;
 	}
@@ -1216,7 +1262,7 @@ int xpdev_queue_add(struct xlnx_pci_dev *xpdev, struct qdma_queue_conf *qconf,
 static void nl_work_handler_q_start(struct work_struct *work)
 {
 	struct xlnx_nl_work *nl_work = container_of(work, struct xlnx_nl_work,
-						work);
+												work);
 	struct xlnx_pci_dev *xpdev = nl_work->xpdev;
 	struct xlnx_nl_work_q_ctrl *qctrl = &nl_work->qctrl;
 	unsigned int qidx = qctrl->qidx;
@@ -1226,35 +1272,40 @@ static void nl_work_handler_q_start(struct work_struct *work)
 	char *ebuf = nl_work->buf;
 	int rv = 0;
 
-	for (i = 0; i < qctrl->qcnt; i++, qidx++) {
+	for (i = 0; i < qctrl->qcnt; i++, qidx++)
+	{
 		struct xlnx_qdata *qdata;
 
-q_start:
+	q_start:
 		qdata = xpdev_queue_get(xpdev, qidx, q_type, 1, ebuf,
-					nl_work->buflen);
-		if (!qdata) {
+								nl_work->buflen);
+		if (!qdata)
+		{
 			pr_err("%s, idx %u, q_type %s, get failed.\n",
-				dev_name(&xpdev->pdev->dev), qidx,
-				q_type_list[q_type].name);
+				   dev_name(&xpdev->pdev->dev), qidx,
+				   q_type_list[q_type].name);
 			snprintf(ebuf, nl_work->buflen,
-				"Q idx %u, q_type %s, get failed.\n",
-				qidx, q_type_list[q_type].name);
+					 "Q idx %u, q_type %s, get failed.\n",
+					 qidx, q_type_list[q_type].name);
 			goto send_resp;
 		}
 
 		rv = qdma_queue_start(xpdev->dev_hndl, qdata->qhndl, ebuf,
-				      nl_work->buflen);
-		if (rv < 0) {
+							  nl_work->buflen);
+		if (rv < 0)
+		{
 			pr_err("%s, idx %u, q_type %s, start failed %d.\n",
-				dev_name(&xpdev->pdev->dev), qidx,
-				q_type_list[q_type].name, rv);
+				   dev_name(&xpdev->pdev->dev), qidx,
+				   q_type_list[q_type].name, rv);
 			snprintf(ebuf, nl_work->buflen,
-				"Q idx %u, q_type %s, start failed %d.\n",
-				qidx, q_type_list[q_type].name, rv);
+					 "Q idx %u, q_type %s, start failed %d.\n",
+					 qidx, q_type_list[q_type].name, rv);
 			goto send_resp;
 		}
-		if (qctrl->q_type != Q_CMPT) {
-			if (is_qp && q_type == qctrl->q_type) {
+		if (qctrl->q_type != Q_CMPT)
+		{
+			if (is_qp && q_type == qctrl->q_type)
+			{
 				q_type = !qctrl->q_type;
 				goto q_start;
 			}
@@ -1264,8 +1315,8 @@ q_start:
 	}
 
 	snprintf(ebuf, nl_work->buflen,
-		 "%u Queues started, idx %u ~ %u.\n",
-		qctrl->qcnt, qctrl->qidx, qidx - 1);
+			 "%u Queues started, idx %u ~ %u.\n",
+			 qctrl->qcnt, qctrl->qidx, qidx - 1);
 
 send_resp:
 	nl_work->q_start_handled = 1;
@@ -1279,9 +1330,10 @@ static struct xlnx_nl_work *xpdev_nl_work_alloc(struct xlnx_pci_dev *xpdev)
 
 	/* allocate work struct */
 	nl_work = kzalloc(sizeof(*nl_work), GFP_ATOMIC);
-	if (!nl_work) {
+	if (!nl_work)
+	{
 		pr_err("qdma%05x %s: OOM.\n",
-			xpdev->idx, dev_name(&xpdev->pdev->dev));
+			   xpdev->idx, dev_name(&xpdev->pdev->dev));
 		return NULL;
 	}
 
@@ -1291,7 +1343,7 @@ static struct xlnx_nl_work *xpdev_nl_work_alloc(struct xlnx_pci_dev *xpdev)
 }
 
 int xpdev_nl_queue_start(struct xlnx_pci_dev *xpdev, void *nl_info, u8 is_qp,
-			u8 q_type, unsigned short qidx, unsigned short qcnt)
+						 u8 q_type, unsigned short qidx, unsigned short qcnt)
 {
 	struct xlnx_nl_work *nl_work = xpdev_nl_work_alloc(xpdev);
 	struct xlnx_nl_work_q_ctrl *qctrl;
@@ -1345,8 +1397,9 @@ static int xpdev_qdata_realloc(struct xlnx_pci_dev *xpdev, unsigned int qmax)
 		return 0;
 	}
 	xpdev->qdata = kzalloc(qmax * 3 * sizeof(struct xlnx_qdata),
-			       GFP_KERNEL);
-	if (!xpdev->qdata) {
+						   GFP_KERNEL);
+	if (!xpdev->qdata)
+	{
 		pr_err("OMM, xpdev->qdata, sz %u.\n", qmax);
 		return -ENOMEM;
 	}
@@ -1361,13 +1414,15 @@ static struct xlnx_pci_dev *xpdev_alloc(struct pci_dev *pdev, unsigned int qmax)
 	struct xlnx_pci_dev *xpdev = kzalloc(sz, GFP_KERNEL);
 	char name[80];
 
-	if (!xpdev) {
+	if (!xpdev)
+	{
 		xpdev = vmalloc(sz);
 		if (xpdev)
 			memset(xpdev, 0, sz);
 	}
 
-	if (!xpdev) {
+	if (!xpdev)
+	{
 		pr_err("OMM, qmax %u, sz %u.\n", qmax, sz);
 		return NULL;
 	}
@@ -1380,9 +1435,10 @@ static struct xlnx_pci_dev *xpdev_alloc(struct pci_dev *pdev, unsigned int qmax)
 
 	snprintf(name, 80, "qdma_%s_nl_wq", dev_name(&pdev->dev));
 	xpdev->nl_task_wq = create_singlethread_workqueue(name);
-	if (!xpdev->nl_task_wq) {
+	if (!xpdev->nl_task_wq)
+	{
 		pr_err("%s failed to allocate nl_task_wq.\n",
-				dev_name(&pdev->dev));
+			   dev_name(&pdev->dev));
 		goto free_xpdev;
 	}
 
@@ -1395,7 +1451,7 @@ free_xpdev:
 }
 
 static int xpdev_map_bar(struct xlnx_pci_dev *xpdev,
-		void __iomem **regs, u8 bar_num)
+						 void __iomem **regs, u8 bar_num)
 {
 	int map_len;
 
@@ -1405,7 +1461,8 @@ static int xpdev_map_bar(struct xlnx_pci_dev *xpdev,
 		map_len = QDMA_MAX_BAR_LEN_MAPPED;
 
 	*regs = pci_iomap(xpdev->pdev, bar_num, map_len);
-	if (!(*regs)) {
+	if (!(*regs))
+	{
 		pr_err("unable to map bar %d.\n", bar_num);
 		return -ENOMEM;
 	}
@@ -1416,7 +1473,8 @@ static int xpdev_map_bar(struct xlnx_pci_dev *xpdev,
 static void xpdev_unmap_bar(struct xlnx_pci_dev *xpdev, void __iomem **regs)
 {
 	/* unmap BAR */
-	if (*regs) {
+	if (*regs)
+	{
 		pci_iounmap(xpdev->pdev, *regs);
 		/* mark as unmapped */
 		*regs = NULL;
@@ -1424,7 +1482,7 @@ static void xpdev_unmap_bar(struct xlnx_pci_dev *xpdev, void __iomem **regs)
 }
 
 int qdma_device_read_user_register(struct xlnx_pci_dev *xpdev,
-		u32 reg_addr, u32 *value)
+								   u32 reg_addr, u32 *value)
 {
 	struct xlnx_dma_dev *xdev = NULL;
 	int rv = 0;
@@ -1434,19 +1492,19 @@ int qdma_device_read_user_register(struct xlnx_pci_dev *xpdev,
 
 	xdev = (struct xlnx_dma_dev *)(xpdev->dev_hndl);
 
-	if (xdev->conf.bar_num_user < 0) {
+	if (xdev->conf.bar_num_user < 0)
+	{
 		pr_err("AXI Master Lite bar is not present\n");
 		return -EINVAL;
 	}
 
 	/* map the AXI Master Lite bar */
 	rv = xpdev_map_bar(xpdev, &xpdev->user_bar_regs,
-			xdev->conf.bar_num_user);
+					   xdev->conf.bar_num_user);
 	if (rv < 0)
 		return rv;
 
 	*value = readl(xpdev->user_bar_regs + reg_addr);
-
 
 	/* unmap the AXI Master Lite bar after accessing it */
 	xpdev_unmap_bar(xpdev, &xpdev->user_bar_regs);
@@ -1455,7 +1513,7 @@ int qdma_device_read_user_register(struct xlnx_pci_dev *xpdev,
 }
 
 int qdma_device_write_user_register(struct xlnx_pci_dev *xpdev,
-		u32 reg_addr, u32 value)
+									u32 reg_addr, u32 value)
 {
 	struct xlnx_dma_dev *xdev = NULL;
 	int rv = 0;
@@ -1465,17 +1523,17 @@ int qdma_device_write_user_register(struct xlnx_pci_dev *xpdev,
 
 	xdev = (struct xlnx_dma_dev *)(xpdev->dev_hndl);
 
-	if (xdev->conf.bar_num_user < 0) {
+	if (xdev->conf.bar_num_user < 0)
+	{
 		pr_err("AXI Master Lite bar is not present\n");
 		return -EINVAL;
 	}
 
 	/* map the AXI Master Lite bar */
 	rv = xpdev_map_bar(xpdev, &xpdev->user_bar_regs,
-			xdev->conf.bar_num_user);
+					   xdev->conf.bar_num_user);
 	if (rv < 0)
 		return rv;
-
 
 	writel(value, xpdev->user_bar_regs + reg_addr);
 
@@ -1486,7 +1544,7 @@ int qdma_device_write_user_register(struct xlnx_pci_dev *xpdev,
 }
 
 int qdma_device_read_bypass_register(struct xlnx_pci_dev *xpdev,
-		u32 reg_addr, u32 *value)
+									 u32 reg_addr, u32 *value)
 {
 	struct xlnx_dma_dev *xdev = NULL;
 	int rv = 0;
@@ -1496,14 +1554,15 @@ int qdma_device_read_bypass_register(struct xlnx_pci_dev *xpdev,
 
 	xdev = (struct xlnx_dma_dev *)(xpdev->dev_hndl);
 
-	if (xdev->conf.bar_num_bypass < 0) {
+	if (xdev->conf.bar_num_bypass < 0)
+	{
 		pr_err("AXI Bridge Master bar is not present\n");
 		return -EINVAL;
 	}
 
 	/* map the AXI Bridge Master bar */
 	rv = xpdev_map_bar(xpdev, &xpdev->bypass_bar_regs,
-			xdev->conf.bar_num_bypass);
+					   xdev->conf.bar_num_bypass);
 	if (rv < 0)
 		return rv;
 
@@ -1516,7 +1575,7 @@ int qdma_device_read_bypass_register(struct xlnx_pci_dev *xpdev,
 }
 
 int qdma_device_write_bypass_register(struct xlnx_pci_dev *xpdev,
-		u32 reg_addr, u32 value)
+									  u32 reg_addr, u32 value)
 {
 	struct xlnx_dma_dev *xdev = NULL;
 	int rv = 0;
@@ -1526,14 +1585,15 @@ int qdma_device_write_bypass_register(struct xlnx_pci_dev *xpdev,
 
 	xdev = (struct xlnx_dma_dev *)(xpdev->dev_hndl);
 
-	if (xdev->conf.bar_num_bypass < 0) {
+	if (xdev->conf.bar_num_bypass < 0)
+	{
 		pr_err("AXI Bridge Master bar is not present\n");
 		return -EINVAL;
 	}
 
 	/* map the AXI Bridge Master bar */
 	rv = xpdev_map_bar(xpdev, &xpdev->bypass_bar_regs,
-			xdev->conf.bar_num_bypass);
+					   xdev->conf.bar_num_bypass);
 	if (rv < 0)
 		return rv;
 
@@ -1545,6 +1605,8 @@ int qdma_device_write_bypass_register(struct xlnx_pci_dev *xpdev,
 	return 0;
 }
 
+extern size_t bridge_phy_addr;
+
 static int probe_one(struct pci_dev *pdev, const struct pci_device_id *id)
 {
 	struct qdma_dev_conf conf;
@@ -1553,14 +1615,14 @@ static int probe_one(struct pci_dev *pdev, const struct pci_device_id *id)
 	int rv;
 #ifdef __x86_64__
 	pr_info("%s: func 0x%x, p/v %d/%d,0x%p.\n",
-		dev_name(&pdev->dev), PCI_FUNC(pdev->devfn),
-		pdev->is_physfn, pdev->is_virtfn, pdev->physfn);
+			dev_name(&pdev->dev), PCI_FUNC(pdev->devfn),
+			pdev->is_physfn, pdev->is_virtfn, pdev->physfn);
 #endif
 	memset(&conf, 0, sizeof(conf));
 
 	conf.qdma_drv_mode = (enum qdma_drv_mode)extract_mod_param(pdev,
-			DRV_MODE);
-	conf.vf_max = 0;	/* enable via sysfs */
+															   DRV_MODE);
+	conf.vf_max = 0; /* enable via sysfs */
 
 #ifndef __QDMA_VF__
 	conf.master_pf = extract_mod_param(pdev, MASTER_PF);
@@ -1572,8 +1634,8 @@ static int probe_one(struct pci_dev *pdev, const struct pci_device_id *id)
 
 #endif /* #ifdef __QDMA_VF__ */
 	pr_info("Driver is loaded in %s(%d) mode\n",
-				mode_name_list[conf.qdma_drv_mode].name,
-				conf.qdma_drv_mode);
+			mode_name_list[conf.qdma_drv_mode].name,
+			conf.qdma_drv_mode);
 
 	if (conf.qdma_drv_mode == LEGACY_INTR_MODE)
 		intr_legacy_init();
@@ -1604,7 +1666,8 @@ static int probe_one(struct pci_dev *pdev, const struct pci_device_id *id)
 		return rv;
 
 	xpdev = xpdev_alloc(pdev, conf.qsets_max);
-	if (!xpdev) {
+	if (!xpdev)
+	{
 		rv = -EINVAL;
 		goto close_device;
 	}
@@ -1618,19 +1681,24 @@ static int probe_one(struct pci_dev *pdev, const struct pci_device_id *id)
 		goto close_device;
 
 	/* Create the files for attributes in sysfs */
-	if (conf.master_pf) {
+	if (conf.master_pf)
+	{
 		rv = sysfs_create_group(&pdev->dev.kobj,
-				&pci_master_device_attr_group);
+								&pci_master_device_attr_group);
 		if (rv < 0)
 			goto close_device;
-	} else {
+	}
+	else
+	{
 		rv = sysfs_create_group(&pdev->dev.kobj,
-				&pci_device_attr_group);
+								&pci_device_attr_group);
 		if (rv < 0)
 			goto close_device;
 	}
 
 	dev_set_drvdata(&pdev->dev, xpdev);
+
+	bridge_phy_addr = pdev->resource[4].start;
 
 	return 0;
 
@@ -1652,7 +1720,8 @@ static void xpdev_device_cleanup(struct xlnx_pci_dev *xpdev)
 		if (qdata->xcdev) {
 			/* if either h2c(1) or c2h(2) bit set, but not both */
 			if (qdata->xcdev->dir_init == 1 ||
-				qdata->xcdev->dir_init == 2) {
+				qdata->xcdev->dir_init == 2)
+			{
 				qdma_cdev_destroy(qdata->xcdev);
 			} else { /* both bits are set so remove one */
 				spin_lock(&xpdev->cdev_lock);
@@ -1669,7 +1738,8 @@ static void remove_one(struct pci_dev *pdev)
 	struct xlnx_dma_dev *xdev = NULL;
 	struct xlnx_pci_dev *xpdev = dev_get_drvdata(&pdev->dev);
 
-	if (!xpdev) {
+	if (!xpdev)
+	{
 		pr_info("%s NOT attached.\n", dev_name(&pdev->dev));
 		return;
 	}
@@ -1677,11 +1747,11 @@ static void remove_one(struct pci_dev *pdev)
 	xdev = (struct xlnx_dma_dev *)(xpdev->dev_hndl);
 
 	pr_info("%s pdev 0x%p, xdev 0x%p, hndl 0x%lx, qdma%05x.\n",
-		dev_name(&pdev->dev), pdev, xpdev, xpdev->dev_hndl, xpdev->idx);
+			dev_name(&pdev->dev), pdev, xpdev, xpdev->dev_hndl, xpdev->idx);
 
 	if (xdev->conf.master_pf)
 		sysfs_remove_group(&pdev->dev.kobj,
-				&pci_master_device_attr_group);
+						   &pci_master_device_attr_group);
 	else
 		sysfs_remove_group(&pdev->dev.kobj, &pci_device_attr_group);
 
@@ -1702,17 +1772,19 @@ static int sriov_config(struct pci_dev *pdev, int num_vfs)
 	struct xlnx_pci_dev *xpdev = dev_get_drvdata(&pdev->dev);
 	int total_vfs = pci_sriov_get_totalvfs(pdev);
 
-	if (!xpdev) {
+	if (!xpdev)
+	{
 		pr_info("%s NOT attached.\n", dev_name(&pdev->dev));
 		return -EINVAL;
 	}
 
 	pr_debug("%s pdev 0x%p, xdev 0x%p, hndl 0x%lx, qdma%05x.\n",
-		dev_name(&pdev->dev), pdev, xpdev, xpdev->dev_hndl, xpdev->idx);
+			 dev_name(&pdev->dev), pdev, xpdev, xpdev->dev_hndl, xpdev->idx);
 
-	if (num_vfs > total_vfs) {
+	if (num_vfs > total_vfs)
+	{
 		pr_info("%s, clamp down # of VFs %d -> %d.\n",
-			dev_name(&pdev->dev), num_vfs, total_vfs);
+				dev_name(&pdev->dev), num_vfs, total_vfs);
 		num_vfs = total_vfs;
 	}
 
@@ -1721,21 +1793,22 @@ static int sriov_config(struct pci_dev *pdev, int num_vfs)
 #endif
 
 static pci_ers_result_t qdma_error_detected(struct pci_dev *pdev,
-					pci_channel_state_t state)
+											pci_channel_state_t state)
 {
 	struct xlnx_pci_dev *xpdev = dev_get_drvdata(&pdev->dev);
 
-	switch (state) {
+	switch (state)
+	{
 	case pci_channel_io_normal:
 		return PCI_ERS_RESULT_CAN_RECOVER;
 	case pci_channel_io_frozen:
 		pr_warn("dev 0x%p,0x%p, frozen state error, reset controller\n",
-			pdev, xpdev);
+				pdev, xpdev);
 		pci_disable_device(pdev);
 		return PCI_ERS_RESULT_NEED_RESET;
 	case pci_channel_io_perm_failure:
 		pr_warn("dev 0x%p,0x%p, failure state error, req. disconnect\n",
-			pdev, xpdev);
+				pdev, xpdev);
 		return PCI_ERS_RESULT_DISCONNECT;
 	}
 	return PCI_ERS_RESULT_NEED_RESET;
@@ -1745,13 +1818,15 @@ static pci_ers_result_t qdma_slot_reset(struct pci_dev *pdev)
 {
 	struct xlnx_pci_dev *xpdev = dev_get_drvdata(&pdev->dev);
 
-	if (!xpdev) {
+	if (!xpdev)
+	{
 		pr_info("%s NOT attached.\n", dev_name(&pdev->dev));
 		return PCI_ERS_RESULT_DISCONNECT;
 	}
 
 	pr_info("0x%p restart after slot reset\n", xpdev);
-	if (pci_enable_device_mem(pdev)) {
+	if (pci_enable_device_mem(pdev))
+	{
 		pr_info("0x%p failed to renable after slot reset\n", xpdev);
 		return PCI_ERS_RESULT_DISCONNECT;
 	}
@@ -1767,7 +1842,8 @@ static void qdma_error_resume(struct pci_dev *pdev)
 {
 	struct xlnx_pci_dev *xpdev = dev_get_drvdata(&pdev->dev);
 
-	if (!xpdev) {
+	if (!xpdev)
+	{
 		pr_info("%s NOT attached.\n", dev_name(&pdev->dev));
 		return;
 	}
@@ -1787,7 +1863,6 @@ static void qdma_error_resume(struct pci_dev *pdev)
 #endif
 #endif
 }
-
 
 #ifdef __QDMA_VF__
 void qdma_flr_resource_free(unsigned long dev_hndl)
@@ -1809,7 +1884,7 @@ static void qdma_reset_prepare(struct pci_dev *pdev)
 
 	xdev = (struct xlnx_dma_dev *)(xpdev->dev_hndl);
 	pr_info("%s pdev 0x%p, xdev 0x%p, hndl 0x%lx, qdma%05x.\n",
-		dev_name(&pdev->dev), pdev, xpdev, xpdev->dev_hndl, xpdev->idx);
+			dev_name(&pdev->dev), pdev, xpdev, xpdev->dev_hndl, xpdev->idx);
 
 	qdma_device_offline(pdev, xpdev->dev_hndl, XDEV_FLR_ACTIVE);
 
@@ -1834,7 +1909,7 @@ static void qdma_reset_done(struct pci_dev *pdev)
 	struct xlnx_pci_dev *xpdev = dev_get_drvdata(&pdev->dev);
 
 	pr_info("%s pdev 0x%p, xdev 0x%p, hndl 0x%lx, qdma%05x.\n",
-		dev_name(&pdev->dev), pdev, xpdev, xpdev->dev_hndl, xpdev->idx);
+			dev_name(&pdev->dev), pdev, xpdev, xpdev->dev_hndl, xpdev->idx);
 	qdma_device_online(pdev, xpdev->dev_hndl, XDEV_FLR_ACTIVE);
 }
 
@@ -1847,10 +1922,11 @@ static void qdma_reset_notify(struct pci_dev *pdev, bool prepare)
 	xdev = (struct xlnx_dma_dev *)(xpdev->dev_hndl);
 
 	pr_info("%s prepare %d, pdev 0x%p, xdev 0x%p, hndl 0x%lx, qdma%05x.\n",
-		dev_name(&pdev->dev), prepare, pdev, xpdev, xpdev->dev_hndl,
-		xpdev->idx);
+			dev_name(&pdev->dev), prepare, pdev, xpdev, xpdev->dev_hndl,
+			xpdev->idx);
 
-	if (prepare) {
+	if (prepare)
+	{
 		qdma_device_offline(pdev, xpdev->dev_hndl, XDEV_FLR_ACTIVE);
 		/* FLR setting is not required for 2018.3 IP */
 		if ((xdev->version_info.ip_type == QDMA_VERSAL_HARD_IP) &&
@@ -1866,19 +1942,20 @@ static void qdma_reset_notify(struct pci_dev *pdev, bool prepare)
 				(xdev->version_info.device_type ==
 				 QDMA_DEVICE_VERSAL_CPM4))
 			qdma_device_flr_quirk_check(pdev, xpdev->dev_hndl);
-	} else
+	}
+	else
 		qdma_device_online(pdev, xpdev->dev_hndl, XDEV_FLR_ACTIVE);
 }
 #endif
 static const struct pci_error_handlers qdma_err_handler = {
-	.error_detected	= qdma_error_detected,
-	.slot_reset	= qdma_slot_reset,
-	.resume		= qdma_error_resume,
+	.error_detected = qdma_error_detected,
+	.slot_reset = qdma_slot_reset,
+	.resume = qdma_error_resume,
 #if KERNEL_VERSION(4, 13, 0) <= LINUX_VERSION_CODE
-	.reset_prepare  = qdma_reset_prepare,
-	.reset_done     = qdma_reset_done,
+	.reset_prepare = qdma_reset_prepare,
+	.reset_done = qdma_reset_done,
 #elif KERNEL_VERSION(3, 16, 0) <= LINUX_VERSION_CODE
-	.reset_notify   = qdma_reset_notify,
+	.reset_notify = qdma_reset_notify,
 #endif
 };
 
