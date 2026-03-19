@@ -18,6 +18,11 @@
 #include <asm/tlbflush.h>
 #include <asm/page_types.h>
 #include "rc4ml.h"
+#include <linux/version.h>   // LINUX_VERSION_CODE, KERNEL_VERSION
+#include <linux/pagemap.h>   
+#include <linux/cdev.h>
+
+static struct cdev rc4ml_cdev;
 
 MODULE_LICENSE("GPL");
 
@@ -65,7 +70,12 @@ static int ioctl_huge_set(unsigned long arg)
 #else
 	mmap_read_lock(current->mm);
 #endif
-	rc = get_user_pages(buf.vaddr, npages, 1, huge_table.huge_pages, NULL);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+        rc = pin_user_pages_fast(buf.vaddr, npages, FOLL_WRITE, huge_table.huge_pages);
+#else
+        rc = get_user_pages(buf.vaddr, npages, FOLL_WRITE, huge_table.huge_pages, NULL);
+#endif
+	//rc = get_user_pages(buf.vaddr, npages, 1, huge_table.huge_pages, NULL);
 #ifndef MMAP_LOCK_INITIALIZER
 	up_read(&current->mm->mmap_sem);
 #else
@@ -174,37 +184,60 @@ static struct file_operations rc4ml_ops = {
 
 int rc4ml_init(void)
 {
-	int res;
-	rc4ml_devno = MKDEV(rc4ml_major, rc4ml_minor);
-	res = register_chrdev(rc4ml_major, "rc4ml_dev", &rc4ml_ops);
-	if (res < 0)
-	{
-		printk(KERN_ALERT "rc4ml device registration failed, may need to change a major number.\n");
-	}
-	else
-	{
-		printk("rc4ml device registred\n");
-	}
-	cls = class_create(THIS_MODULE, "rc4ml_class");
-	if (IS_ERR(cls))
-	{
-		unregister_chrdev(rc4ml_major, "rc4ml_dev");
-	}
-	rc4ml_device = device_create(cls, NULL, rc4ml_devno, NULL, "rc4ml_dev");
-	if (IS_ERR(rc4ml_device))
-	{
-		class_destroy(cls);
-		unregister_chrdev(rc4ml_major, "rc4ml_dev");
-		return -EBUSY;
-	}
-	printk("rc4ml:init complete\n");
-	return 0;
-}
+        int res;
 
+        /* 1) 动态分配 major/minor */
+        res = alloc_chrdev_region(&rc4ml_devno, rc4ml_minor, 1, "rc4ml_dev");
+        if (res < 0) {
+                pr_err("rc4ml: alloc_chrdev_region failed: %d\n", res);
+                return res;
+        }
+
+        /* 2) 注册 cdev */
+        cdev_init(&rc4ml_cdev, &rc4ml_ops);
+        rc4ml_cdev.owner = THIS_MODULE;
+
+        res = cdev_add(&rc4ml_cdev, rc4ml_devno, 1);
+        if (res < 0) {
+                pr_err("rc4ml: cdev_add failed: %d\n", res);
+                unregister_chrdev_region(rc4ml_devno, 1);
+                return res;
+        }
+
+        /* 3) 创建 class */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0)
+        cls = class_create("rc4ml");
+#else
+        cls = class_create(THIS_MODULE, "rc4ml");
+#endif
+        if (IS_ERR(cls)) {
+                res = PTR_ERR(cls);
+                pr_err("rc4ml: class_create failed: %d\n", res);
+                cdev_del(&rc4ml_cdev);
+                unregister_chrdev_region(rc4ml_devno, 1);
+                return res;
+        }
+
+        /* 4) 创建 /dev/rc4ml_dev */
+        rc4ml_device = device_create(cls, NULL, rc4ml_devno, NULL, "rc4ml_dev");
+        if (IS_ERR(rc4ml_device)) {
+                res = PTR_ERR(rc4ml_device);
+                pr_err("rc4ml: device_create failed: %d\n", res);
+                class_destroy(cls);
+                cdev_del(&rc4ml_cdev);
+                unregister_chrdev_region(rc4ml_devno, 1);
+                return res;
+        }
+
+        pr_info("rc4ml: init complete (major=%d minor=%d)\n",
+                MAJOR(rc4ml_devno), MINOR(rc4ml_devno));
+        return 0;
+}
 void rc4ml_cleanup(void)
 {
 	device_destroy(cls, rc4ml_devno);
 	class_destroy(cls);
-	unregister_chrdev(rc4ml_major, "rc4ml_dev");
+	cdev_del(&rc4ml_cdev);
+	unregister_chrdev_region(rc4ml_devno, 1);
 	printk("rc4ml:destroy complete\n");
 }

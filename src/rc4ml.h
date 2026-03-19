@@ -3,7 +3,7 @@
 
 #include <linux/ioctl.h>
 
-#define rc4ml_major 90
+//#define rc4ml_major 90
 #define rc4ml_minor 0
 
 struct huge_mem
