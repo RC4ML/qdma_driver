@@ -93,13 +93,13 @@
 #define EQDMA_CPM5_FMAP_CTXT_W0_QID_MASK             GENMASK(11, 0)
 
 static void eqdma_cpm5_hw_st_h2c_err_process(void *dev_hndl);
-static void eqdma_cpm5_hw_st_c2h_err_process(void *dev_hndl);
+// static void eqdma_cpm5_hw_st_c2h_err_process(void *dev_hndl);
 static void eqdma_cpm5_hw_desc_err_process(void *dev_hndl);
 static void eqdma_cpm5_hw_trq_err_process(void *dev_hndl);
 static void eqdma_cpm5_hw_ram_sbe_err_process(void *dev_hndl);
 static void eqdma_cpm5_hw_ram_dbe_err_process(void *dev_hndl);
 static void eqdma_cpm5_mm_h2c0_err_process(void *dev_hndl);
-static void eqdma_cpm5_mm_c2h0_err_process(void *dev_hndl);
+// static void eqdma_cpm5_mm_c2h0_err_process(void *dev_hndl);
 
 static struct eqdma_cpm5_hw_err_info
 	eqdma_cpm5_err_info[EQDMA_CPM5_ERRS_ALL] = {
@@ -323,324 +323,324 @@ static struct eqdma_cpm5_hw_err_info
 		&eqdma_cpm5_hw_trq_err_process
 	},
 
-	/* C2H Errors*/
-	{
-		EQDMA_CPM5_ST_C2H_ERR_MTY_MISMATCH,
-		"MTY mismatch error",
-		EQDMA_CPM5_C2H_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_ERR_STAT_ADDR,
-		C2H_ERR_STAT_MTY_MISMATCH_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_C2H_ERR_LEN_MISMATCH,
-		"Packet length mismatch error",
-		EQDMA_CPM5_C2H_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_ERR_STAT_ADDR,
-		C2H_ERR_STAT_LEN_MISMATCH_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_C2H_ERR_SH_CMPT_DSC,
-		"A Shared CMPT queue has encountered a descriptor error",
-		EQDMA_CPM5_C2H_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_ERR_STAT_ADDR,
-		C2H_ERR_STAT_SH_CMPT_DSC_ERR_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_C2H_ERR_QID_MISMATCH,
-		"Qid mismatch error",
-		EQDMA_CPM5_C2H_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_ERR_STAT_ADDR,
-		C2H_ERR_STAT_QID_MISMATCH_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_C2H_ERR_DESC_RSP_ERR,
-		"Descriptor error bit set",
-		EQDMA_CPM5_C2H_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_ERR_STAT_ADDR,
-		C2H_ERR_STAT_DESC_RSP_ERR_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_C2H_ERR_ENG_WPL_DATA_PAR_ERR,
-		"Data parity error",
-		EQDMA_CPM5_C2H_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_ERR_STAT_ADDR,
-		C2H_ERR_STAT_ENG_WPL_DATA_PAR_ERR_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_C2H_ERR_MSI_INT_FAIL,
-		"MSI got a fail response error",
-		EQDMA_CPM5_C2H_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_ERR_STAT_ADDR,
-		C2H_ERR_STAT_MSI_INT_FAIL_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_C2H_ERR_ERR_DESC_CNT,
-		"Descriptor count error",
-		EQDMA_CPM5_C2H_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_ERR_STAT_ADDR,
-		C2H_ERR_STAT_ERR_DESC_CNT_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_C2H_ERR_PORTID_CTXT_MISMATCH,
-		"Port id in packet and pfetch ctxt mismatch error",
-		EQDMA_CPM5_C2H_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_ERR_STAT_ADDR,
-		C2H_ERR_STAT_PORT_ID_CTXT_MISMATCH_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_C2H_ERR_CMPT_INV_Q_ERR,
-		"Writeback on invalid queue error",
-		EQDMA_CPM5_C2H_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_ERR_STAT_ADDR,
-		C2H_ERR_STAT_WRB_INV_Q_ERR_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_C2H_ERR_CMPT_QFULL_ERR,
-		"Completion queue gets full error",
-		EQDMA_CPM5_C2H_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_ERR_STAT_ADDR,
-		C2H_ERR_STAT_WRB_QFULL_ERR_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_C2H_ERR_CMPT_CIDX_ERR,
-		"Bad CIDX update by the software error",
-		EQDMA_CPM5_C2H_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_ERR_STAT_ADDR,
-		C2H_ERR_STAT_WRB_CIDX_ERR_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_C2H_ERR_CMPT_PRTY_ERR,
-		"C2H completion Parity error",
-		EQDMA_CPM5_C2H_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_ERR_STAT_ADDR,
-		C2H_ERR_STAT_WRB_PRTY_ERR_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_C2H_ERR_AVL_RING_DSC,
-		"Available ring fetch returns descriptor with error",
-		EQDMA_CPM5_C2H_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_ERR_STAT_ADDR,
-		C2H_ERR_STAT_AVL_RING_DSC_ERR_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_C2H_ERR_HDR_ECC_UNC,
-		"multi-bit ecc error on c2h packet header",
-		EQDMA_CPM5_C2H_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_ERR_STAT_ADDR,
-		C2H_ERR_STAT_HDR_ECC_UNC_ERR_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_C2H_ERR_HDR_ECC_COR,
-		"single-bit ecc error on c2h packet header",
-		EQDMA_CPM5_C2H_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_ERR_STAT_ADDR,
-		C2H_ERR_STAT_HDR_ECC_COR_ERR_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_C2H_ERR_WRB_PORT_ID_ERR,
-		"Port ID error",
-		EQDMA_CPM5_C2H_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_ERR_STAT_ADDR,
-		C2H_ERR_STAT_WRB_PORT_ID_ERR_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_C2H_ERR_ALL,
-		"All C2h errors",
-		EQDMA_CPM5_C2H_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_ERR_STAT_ADDR,
-		EQDMA_CPM5_C2H_ERR_ALL_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
+	// /* C2H Errors*/
+	// {
+	// 	EQDMA_CPM5_ST_C2H_ERR_MTY_MISMATCH,
+	// 	"MTY mismatch error",
+	// 	EQDMA_CPM5_C2H_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_ERR_STAT_ADDR,
+	// 	C2H_ERR_STAT_MTY_MISMATCH_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_C2H_ERR_LEN_MISMATCH,
+	// 	"Packet length mismatch error",
+	// 	EQDMA_CPM5_C2H_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_ERR_STAT_ADDR,
+	// 	C2H_ERR_STAT_LEN_MISMATCH_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_C2H_ERR_SH_CMPT_DSC,
+	// 	"A Shared CMPT queue has encountered a descriptor error",
+	// 	EQDMA_CPM5_C2H_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_ERR_STAT_ADDR,
+	// 	C2H_ERR_STAT_SH_CMPT_DSC_ERR_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_C2H_ERR_QID_MISMATCH,
+	// 	"Qid mismatch error",
+	// 	EQDMA_CPM5_C2H_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_ERR_STAT_ADDR,
+	// 	C2H_ERR_STAT_QID_MISMATCH_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_C2H_ERR_DESC_RSP_ERR,
+	// 	"Descriptor error bit set",
+	// 	EQDMA_CPM5_C2H_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_ERR_STAT_ADDR,
+	// 	C2H_ERR_STAT_DESC_RSP_ERR_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_C2H_ERR_ENG_WPL_DATA_PAR_ERR,
+	// 	"Data parity error",
+	// 	EQDMA_CPM5_C2H_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_ERR_STAT_ADDR,
+	// 	C2H_ERR_STAT_ENG_WPL_DATA_PAR_ERR_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_C2H_ERR_MSI_INT_FAIL,
+	// 	"MSI got a fail response error",
+	// 	EQDMA_CPM5_C2H_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_ERR_STAT_ADDR,
+	// 	C2H_ERR_STAT_MSI_INT_FAIL_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_C2H_ERR_ERR_DESC_CNT,
+	// 	"Descriptor count error",
+	// 	EQDMA_CPM5_C2H_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_ERR_STAT_ADDR,
+	// 	C2H_ERR_STAT_ERR_DESC_CNT_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_C2H_ERR_PORTID_CTXT_MISMATCH,
+	// 	"Port id in packet and pfetch ctxt mismatch error",
+	// 	EQDMA_CPM5_C2H_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_ERR_STAT_ADDR,
+	// 	C2H_ERR_STAT_PORT_ID_CTXT_MISMATCH_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_C2H_ERR_CMPT_INV_Q_ERR,
+	// 	"Writeback on invalid queue error",
+	// 	EQDMA_CPM5_C2H_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_ERR_STAT_ADDR,
+	// 	C2H_ERR_STAT_WRB_INV_Q_ERR_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_C2H_ERR_CMPT_QFULL_ERR,
+	// 	"Completion queue gets full error",
+	// 	EQDMA_CPM5_C2H_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_ERR_STAT_ADDR,
+	// 	C2H_ERR_STAT_WRB_QFULL_ERR_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_C2H_ERR_CMPT_CIDX_ERR,
+	// 	"Bad CIDX update by the software error",
+	// 	EQDMA_CPM5_C2H_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_ERR_STAT_ADDR,
+	// 	C2H_ERR_STAT_WRB_CIDX_ERR_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_C2H_ERR_CMPT_PRTY_ERR,
+	// 	"C2H completion Parity error",
+	// 	EQDMA_CPM5_C2H_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_ERR_STAT_ADDR,
+	// 	C2H_ERR_STAT_WRB_PRTY_ERR_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_C2H_ERR_AVL_RING_DSC,
+	// 	"Available ring fetch returns descriptor with error",
+	// 	EQDMA_CPM5_C2H_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_ERR_STAT_ADDR,
+	// 	C2H_ERR_STAT_AVL_RING_DSC_ERR_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_C2H_ERR_HDR_ECC_UNC,
+	// 	"multi-bit ecc error on c2h packet header",
+	// 	EQDMA_CPM5_C2H_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_ERR_STAT_ADDR,
+	// 	C2H_ERR_STAT_HDR_ECC_UNC_ERR_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_C2H_ERR_HDR_ECC_COR,
+	// 	"single-bit ecc error on c2h packet header",
+	// 	EQDMA_CPM5_C2H_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_ERR_STAT_ADDR,
+	// 	C2H_ERR_STAT_HDR_ECC_COR_ERR_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_C2H_ERR_WRB_PORT_ID_ERR,
+	// 	"Port ID error",
+	// 	EQDMA_CPM5_C2H_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_ERR_STAT_ADDR,
+	// 	C2H_ERR_STAT_WRB_PORT_ID_ERR_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_C2H_ERR_ALL,
+	// 	"All C2h errors",
+	// 	EQDMA_CPM5_C2H_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_ERR_STAT_ADDR,
+	// 	EQDMA_CPM5_C2H_ERR_ALL_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
 
 	/* C2H fatal errors */
-	{
-		EQDMA_CPM5_ST_FATAL_ERR_MTY_MISMATCH,
-		"Fatal MTY mismatch error",
-		EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
-		C2H_FATAL_ERR_STAT_MTY_MISMATCH_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_FATAL_ERR_LEN_MISMATCH,
-		"Fatal Len mismatch error",
-		EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
-		C2H_FATAL_ERR_STAT_LEN_MISMATCH_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_FATAL_ERR_QID_MISMATCH,
-		"Fatal Qid mismatch error",
-		EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
-		C2H_FATAL_ERR_STAT_QID_MISMATCH_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_FATAL_ERR_TIMER_FIFO_RAM_RDBE,
-		"RAM double bit fatal error",
-		EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
-		C2H_FATAL_ERR_STAT_TIMER_FIFO_RAM_RDBE_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_FATAL_ERR_PFCH_II_RAM_RDBE,
-		"RAM double bit fatal error",
-		EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
-		C2H_FATAL_ERR_STAT_PFCH_LL_RAM_RDBE_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_FATAL_ERR_CMPT_CTXT_RAM_RDBE,
-		"RAM double bit fatal error",
-		EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
-		C2H_FATAL_ERR_STAT_WRB_CTXT_RAM_RDBE_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_FATAL_ERR_PFCH_CTXT_RAM_RDBE,
-		"RAM double bit fatal error",
-		EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
-		C2H_FATAL_ERR_STAT_PFCH_CTXT_RAM_RDBE_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_FATAL_ERR_DESC_REQ_FIFO_RAM_RDBE,
-		"RAM double bit fatal error",
-		EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
-		C2H_FATAL_ERR_STAT_DESC_REQ_FIFO_RAM_RDBE_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_FATAL_ERR_INT_CTXT_RAM_RDBE,
-		"RAM double bit fatal error",
-		EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
-		C2H_FATAL_ERR_STAT_INT_CTXT_RAM_RDBE_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_FATAL_ERR_CMPT_COAL_DATA_RAM_RDBE,
-		"RAM double bit fatal error",
-		EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
-		C2H_FATAL_ERR_STAT_WRB_COAL_DATA_RAM_RDBE_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_FATAL_ERR_CMPT_FIFO_RAM_RDBE,
-		"RAM double bit fatal error",
-		EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
-		C2H_FATAL_ERR_STAT_CMPT_FIFO_RAM_RDBE_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_FATAL_ERR_QID_FIFO_RAM_RDBE,
-		"RAM double bit fatal error",
-		EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
-		C2H_FATAL_ERR_STAT_QID_FIFO_RAM_RDBE_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_FATAL_ERR_PAYLOAD_FIFO_RAM_RDBE,
-		"RAM double bit fatal error",
-		EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
-		C2H_FATAL_ERR_STAT_PLD_FIFO_RAM_RDBE_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_FATAL_ERR_WPL_DATA_PAR,
-		"RAM double bit fatal error",
-		EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
-		C2H_FATAL_ERR_STAT_WPL_DATA_PAR_ERR_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_FATAL_ERR_AVL_RING_FIFO_RAM_RDBE,
-		"RAM double bit fatal error",
-		EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
-		C2H_FATAL_ERR_STAT_AVL_RING_FIFO_RAM_RDBE_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_FATAL_ERR_HDR_ECC_UNC,
-		"RAM double bit fatal error",
-		EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
-		C2H_FATAL_ERR_STAT_HDR_ECC_UNC_ERR_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
-	{
-		EQDMA_CPM5_ST_FATAL_ERR_ALL,
-		"All fatal errors",
-		EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
-		EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
-		EQDMA_CPM5_C2H_FATAL_ERR_ALL_MASK,
-		GLBL_ERR_STAT_ERR_C2H_ST_MASK,
-		&eqdma_cpm5_hw_st_c2h_err_process
-	},
+	// {
+	// 	EQDMA_CPM5_ST_FATAL_ERR_MTY_MISMATCH,
+	// 	"Fatal MTY mismatch error",
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
+	// 	C2H_FATAL_ERR_STAT_MTY_MISMATCH_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_FATAL_ERR_LEN_MISMATCH,
+	// 	"Fatal Len mismatch error",
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
+	// 	C2H_FATAL_ERR_STAT_LEN_MISMATCH_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_FATAL_ERR_QID_MISMATCH,
+	// 	"Fatal Qid mismatch error",
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
+	// 	C2H_FATAL_ERR_STAT_QID_MISMATCH_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_FATAL_ERR_TIMER_FIFO_RAM_RDBE,
+	// 	"RAM double bit fatal error",
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
+	// 	C2H_FATAL_ERR_STAT_TIMER_FIFO_RAM_RDBE_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_FATAL_ERR_PFCH_II_RAM_RDBE,
+	// 	"RAM double bit fatal error",
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
+	// 	C2H_FATAL_ERR_STAT_PFCH_LL_RAM_RDBE_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_FATAL_ERR_CMPT_CTXT_RAM_RDBE,
+	// 	"RAM double bit fatal error",
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
+	// 	C2H_FATAL_ERR_STAT_WRB_CTXT_RAM_RDBE_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_FATAL_ERR_PFCH_CTXT_RAM_RDBE,
+	// 	"RAM double bit fatal error",
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
+	// 	C2H_FATAL_ERR_STAT_PFCH_CTXT_RAM_RDBE_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_FATAL_ERR_DESC_REQ_FIFO_RAM_RDBE,
+	// 	"RAM double bit fatal error",
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
+	// 	C2H_FATAL_ERR_STAT_DESC_REQ_FIFO_RAM_RDBE_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_FATAL_ERR_INT_CTXT_RAM_RDBE,
+	// 	"RAM double bit fatal error",
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
+	// 	C2H_FATAL_ERR_STAT_INT_CTXT_RAM_RDBE_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_FATAL_ERR_CMPT_COAL_DATA_RAM_RDBE,
+	// 	"RAM double bit fatal error",
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
+	// 	C2H_FATAL_ERR_STAT_WRB_COAL_DATA_RAM_RDBE_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_FATAL_ERR_CMPT_FIFO_RAM_RDBE,
+	// 	"RAM double bit fatal error",
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
+	// 	C2H_FATAL_ERR_STAT_CMPT_FIFO_RAM_RDBE_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_FATAL_ERR_QID_FIFO_RAM_RDBE,
+	// 	"RAM double bit fatal error",
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
+	// 	C2H_FATAL_ERR_STAT_QID_FIFO_RAM_RDBE_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_FATAL_ERR_PAYLOAD_FIFO_RAM_RDBE,
+	// 	"RAM double bit fatal error",
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
+	// 	C2H_FATAL_ERR_STAT_PLD_FIFO_RAM_RDBE_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_FATAL_ERR_WPL_DATA_PAR,
+	// 	"RAM double bit fatal error",
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
+	// 	C2H_FATAL_ERR_STAT_WPL_DATA_PAR_ERR_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_FATAL_ERR_AVL_RING_FIFO_RAM_RDBE,
+	// 	"RAM double bit fatal error",
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
+	// 	C2H_FATAL_ERR_STAT_AVL_RING_FIFO_RAM_RDBE_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_FATAL_ERR_HDR_ECC_UNC,
+	// 	"RAM double bit fatal error",
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
+	// 	C2H_FATAL_ERR_STAT_HDR_ECC_UNC_ERR_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_ST_FATAL_ERR_ALL,
+	// 	"All fatal errors",
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
+	// 	EQDMA_CPM5_C2H_FATAL_ERR_ALL_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_ST_MASK,
+	// 	&eqdma_cpm5_hw_st_c2h_err_process
+	// },
 
 	/* H2C St errors */
 	{
@@ -1361,60 +1361,60 @@ static struct eqdma_cpm5_hw_err_info
 	},
 
 	/* MM C2H Engine 0 errors */
-	{
-		EQDMA_CPM5_MM_C2H_WR_SLR_ERR,
-		"MM C2H0 WR SLV Error",
-		EQDMA_CPM5_C2H_MM_ERR_CODE_ENABLE_MASK_ADDR,
-		EQDMA_CPM5_C2H_MM_STATUS_ADDR,
-		C2H_MM_ERR_CODE_ENABLE_WR_SLV_ERR_MASK,
-		GLBL_ERR_STAT_ERR_C2H_MM_0_MASK,
-		&eqdma_cpm5_mm_c2h0_err_process
-	},
-	{
-		EQDMA_CPM5_MM_C2H_RD_SLR_ERR,
-		"MM C2H0 RD SLV Error",
-		EQDMA_CPM5_C2H_MM_ERR_CODE_ENABLE_MASK_ADDR,
-		EQDMA_CPM5_C2H_MM_STATUS_ADDR,
-		C2H_MM_ERR_CODE_ENABLE_RD_SLV_ERR_MASK,
-		GLBL_ERR_STAT_ERR_C2H_MM_0_MASK,
-		&eqdma_cpm5_mm_c2h0_err_process
-	},
-	{
-		EQDMA_CPM5_MM_C2H_WR_FLR_ERR,
-		"MM C2H0 WR FLR Error",
-		EQDMA_CPM5_C2H_MM_ERR_CODE_ENABLE_MASK_ADDR,
-		EQDMA_CPM5_C2H_MM_STATUS_ADDR,
-		C2H_MM_ERR_CODE_ENABLE_WR_FLR_MASK,
-		GLBL_ERR_STAT_ERR_C2H_MM_0_MASK,
-		&eqdma_cpm5_mm_c2h0_err_process
-	},
-	{
-		EQDMA_CPM5_MM_C2H_UR_ERR,
-		"MM C2H0 Unsupported Request Error",
-		EQDMA_CPM5_C2H_MM_ERR_CODE_ENABLE_MASK_ADDR,
-		EQDMA_CPM5_C2H_MM_STATUS_ADDR,
-		C2H_MM_ERR_CODE_ENABLE_WR_UR_MASK,
-		GLBL_ERR_STAT_ERR_C2H_MM_0_MASK,
-		&eqdma_cpm5_mm_c2h0_err_process
-	},
-	{
-		EQDMA_CPM5_MM_C2H_WR_UC_RAM_ERR,
-		"MM C2H0 Write Uncorrectable RAM Error",
-		EQDMA_CPM5_C2H_MM_ERR_CODE_ENABLE_MASK_ADDR,
-		EQDMA_CPM5_C2H_MM_STATUS_ADDR,
-		C2H_MM_ERR_CODE_ENABLE_WR_UC_RAM_MASK,
-		GLBL_ERR_STAT_ERR_C2H_MM_0_MASK,
-		&eqdma_cpm5_mm_c2h0_err_process
-	},
-	{
-		EQDMA_CPM5_MM_C2H_ERR_ALL,
-		"All MM C2H Errors",
-		EQDMA_CPM5_C2H_MM_ERR_CODE_ENABLE_MASK_ADDR,
-		EQDMA_CPM5_C2H_MM_STATUS_ADDR,
-		EQDMA_CPM5_MM_C2H_ERR_ALL_MASK,
-		GLBL_ERR_STAT_ERR_C2H_MM_0_MASK,
-		&eqdma_cpm5_hw_desc_err_process
-	},
+	// {
+	// 	EQDMA_CPM5_MM_C2H_WR_SLR_ERR,
+	// 	"MM C2H0 WR SLV Error",
+	// 	EQDMA_CPM5_C2H_MM_ERR_CODE_ENABLE_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_MM_STATUS_ADDR,
+	// 	C2H_MM_ERR_CODE_ENABLE_WR_SLV_ERR_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_MM_0_MASK,
+	// 	&eqdma_cpm5_mm_c2h0_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_MM_C2H_RD_SLR_ERR,
+	// 	"MM C2H0 RD SLV Error",
+	// 	EQDMA_CPM5_C2H_MM_ERR_CODE_ENABLE_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_MM_STATUS_ADDR,
+	// 	C2H_MM_ERR_CODE_ENABLE_RD_SLV_ERR_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_MM_0_MASK,
+	// 	&eqdma_cpm5_mm_c2h0_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_MM_C2H_WR_FLR_ERR,
+	// 	"MM C2H0 WR FLR Error",
+	// 	EQDMA_CPM5_C2H_MM_ERR_CODE_ENABLE_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_MM_STATUS_ADDR,
+	// 	C2H_MM_ERR_CODE_ENABLE_WR_FLR_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_MM_0_MASK,
+	// 	&eqdma_cpm5_mm_c2h0_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_MM_C2H_UR_ERR,
+	// 	"MM C2H0 Unsupported Request Error",
+	// 	EQDMA_CPM5_C2H_MM_ERR_CODE_ENABLE_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_MM_STATUS_ADDR,
+	// 	C2H_MM_ERR_CODE_ENABLE_WR_UR_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_MM_0_MASK,
+	// 	&eqdma_cpm5_mm_c2h0_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_MM_C2H_WR_UC_RAM_ERR,
+	// 	"MM C2H0 Write Uncorrectable RAM Error",
+	// 	EQDMA_CPM5_C2H_MM_ERR_CODE_ENABLE_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_MM_STATUS_ADDR,
+	// 	C2H_MM_ERR_CODE_ENABLE_WR_UC_RAM_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_MM_0_MASK,
+	// 	&eqdma_cpm5_mm_c2h0_err_process
+	// },
+	// {
+	// 	EQDMA_CPM5_MM_C2H_ERR_ALL,
+	// 	"All MM C2H Errors",
+	// 	EQDMA_CPM5_C2H_MM_ERR_CODE_ENABLE_MASK_ADDR,
+	// 	EQDMA_CPM5_C2H_MM_STATUS_ADDR,
+	// 	EQDMA_CPM5_MM_C2H_ERR_ALL_MASK,
+	// 	GLBL_ERR_STAT_ERR_C2H_MM_0_MASK,
+	// 	&eqdma_cpm5_hw_desc_err_process
+	// },
 	/* MM H2C Engine 0 Errors */
 	{
 		EQDMA_CPM5_MM_H2C0_RD_HDR_POISON_ERR,
@@ -5336,34 +5336,34 @@ static void eqdma_cpm5_hw_st_h2c_err_process(void *dev_hndl)
  *
  * Return: void
  *****************************************************************************/
-static void eqdma_cpm5_hw_st_c2h_err_process(void *dev_hndl)
-{
-	int i = 0;
-	uint32_t st_c2h_err_reg_list[] = {
-		EQDMA_CPM5_C2H_ERR_STAT_ADDR,
-		EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
-		EQDMA_CPM5_C2H_FIRST_ERR_QID_ADDR,
-		EQDMA_CPM5_C2H_STAT_S_AXIS_C2H_ACCEPTED_ADDR,
-		EQDMA_CPM5_C2H_STAT_S_AXIS_WRB_ACCEPTED_ADDR,
-		EQDMA_CPM5_C2H_STAT_DESC_RSP_PKT_ACCEPTED_ADDR,
-		EQDMA_CPM5_C2H_STAT_AXIS_PKG_CMP_ADDR,
-		EQDMA_CPM5_C2H_STAT_DBG_DMA_ENG_0_ADDR,
-		EQDMA_CPM5_C2H_STAT_DBG_DMA_ENG_1_ADDR,
-		EQDMA_CPM5_C2H_STAT_DBG_DMA_ENG_2_ADDR,
-		EQDMA_CPM5_C2H_STAT_DBG_DMA_ENG_3_ADDR,
-		EQDMA_CPM5_C2H_STAT_DESC_RSP_DROP_ACCEPTED_ADDR,
-		EQDMA_CPM5_C2H_STAT_DESC_RSP_ERR_ACCEPTED_ADDR
-	};
-	int st_c2h_err_num_regs = sizeof(st_c2h_err_reg_list)/sizeof(uint32_t);
+// static void eqdma_cpm5_hw_st_c2h_err_process(void *dev_hndl)
+// {
+// 	int i = 0;
+// 	uint32_t st_c2h_err_reg_list[] = {
+// 		EQDMA_CPM5_C2H_ERR_STAT_ADDR,
+// 		EQDMA_CPM5_C2H_FATAL_ERR_STAT_ADDR,
+// 		EQDMA_CPM5_C2H_FIRST_ERR_QID_ADDR,
+// 		EQDMA_CPM5_C2H_STAT_S_AXIS_C2H_ACCEPTED_ADDR,
+// 		EQDMA_CPM5_C2H_STAT_S_AXIS_WRB_ACCEPTED_ADDR,
+// 		EQDMA_CPM5_C2H_STAT_DESC_RSP_PKT_ACCEPTED_ADDR,
+// 		EQDMA_CPM5_C2H_STAT_AXIS_PKG_CMP_ADDR,
+// 		EQDMA_CPM5_C2H_STAT_DBG_DMA_ENG_0_ADDR,
+// 		EQDMA_CPM5_C2H_STAT_DBG_DMA_ENG_1_ADDR,
+// 		EQDMA_CPM5_C2H_STAT_DBG_DMA_ENG_2_ADDR,
+// 		EQDMA_CPM5_C2H_STAT_DBG_DMA_ENG_3_ADDR,
+// 		EQDMA_CPM5_C2H_STAT_DESC_RSP_DROP_ACCEPTED_ADDR,
+// 		EQDMA_CPM5_C2H_STAT_DESC_RSP_ERR_ACCEPTED_ADDR
+// 	};
+// 	int st_c2h_err_num_regs = sizeof(st_c2h_err_reg_list)/sizeof(uint32_t);
 
-	for (i = 0; i < st_c2h_err_num_regs; i++) {
-		eqdma_cpm5_dump_reg_info(dev_hndl, st_c2h_err_reg_list[i],
-					1, NULL, 0);
-	}
+// 	for (i = 0; i < st_c2h_err_num_regs; i++) {
+// 		eqdma_cpm5_dump_reg_info(dev_hndl, st_c2h_err_reg_list[i],
+// 					1, NULL, 0);
+// 	}
 
-	eqdma_cpm5_hw_err_dump_ctxt_info(dev_hndl,
-			EQDMA_CPM5_C2H_FIRST_ERR_QID_ADDR, 1, 1);
-}
+// 	eqdma_cpm5_hw_err_dump_ctxt_info(dev_hndl,
+// 			EQDMA_CPM5_C2H_FIRST_ERR_QID_ADDR, 1, 1);
+// }
 
 /*****************************************************************************/
 /**
@@ -5374,26 +5374,26 @@ static void eqdma_cpm5_hw_st_c2h_err_process(void *dev_hndl)
  *
  * Return: void
  *****************************************************************************/
-static void eqdma_cpm5_mm_c2h0_err_process(void *dev_hndl)
-{
-	int i = 0;
-	uint32_t mm_c2h_err_reg_list[] = {
-		EQDMA_CPM5_C2H_MM_STATUS_ADDR,
-		EQDMA_CPM5_C2H_MM_CMPL_DESC_CNT_ADDR,
-		EQDMA_CPM5_C2H_MM_ERR_CODE_ADDR,
-		EQDMA_CPM5_C2H_MM_ERR_INFO_ADDR,
-		EQDMA_CPM5_C2H_MM_DBG_ADDR
-	};
-	int mm_c2h_err_num_regs = sizeof(mm_c2h_err_reg_list)/sizeof(uint32_t);
+// static void eqdma_cpm5_mm_c2h0_err_process(void *dev_hndl)
+// {
+// 	int i = 0;
+// 	uint32_t mm_c2h_err_reg_list[] = {
+// 		EQDMA_CPM5_C2H_MM_STATUS_ADDR,
+// 		EQDMA_CPM5_C2H_MM_CMPL_DESC_CNT_ADDR,
+// 		EQDMA_CPM5_C2H_MM_ERR_CODE_ADDR,
+// 		EQDMA_CPM5_C2H_MM_ERR_INFO_ADDR,
+// 		EQDMA_CPM5_C2H_MM_DBG_ADDR
+// 	};
+// 	int mm_c2h_err_num_regs = sizeof(mm_c2h_err_reg_list)/sizeof(uint32_t);
 
-	for (i = 0; i < mm_c2h_err_num_regs; i++) {
-		eqdma_cpm5_dump_reg_info(dev_hndl, mm_c2h_err_reg_list[i],
-					1, NULL, 0);
-	}
+// 	for (i = 0; i < mm_c2h_err_num_regs; i++) {
+// 		eqdma_cpm5_dump_reg_info(dev_hndl, mm_c2h_err_reg_list[i],
+// 					1, NULL, 0);
+// 	}
 
-	eqdma_cpm5_hw_err_dump_ctxt_info(dev_hndl,
-			EQDMA_CPM5_C2H_MM_ERR_INFO_ADDR, 0, 1);
-}
+// 	eqdma_cpm5_hw_err_dump_ctxt_info(dev_hndl,
+// 			EQDMA_CPM5_C2H_MM_ERR_INFO_ADDR, 0, 1);
+// }
 
 /*****************************************************************************/
 /**
