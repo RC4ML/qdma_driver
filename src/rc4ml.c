@@ -13,6 +13,7 @@
 #include <linux/sched/mm.h>
 #include <linux/uaccess.h>
 #include <linux/delay.h>
+#include <linux/cdev.h>
 #include <asm/io.h>
 #include <asm/cacheflush.h>
 #include <asm/tlbflush.h>
@@ -22,6 +23,7 @@
 MODULE_LICENSE("GPL");
 
 static dev_t rc4ml_devno;
+static struct cdev rc4ml_cdev;
 static struct class *cls;
 static struct device *rc4ml_device;
 struct huge_table_t huge_table;
@@ -175,28 +177,44 @@ static struct file_operations rc4ml_ops = {
 int rc4ml_init(void)
 {
 	int res;
-	rc4ml_devno = MKDEV(rc4ml_major, rc4ml_minor);
-	res = register_chrdev(rc4ml_major, "rc4ml_dev", &rc4ml_ops);
+
+	res = alloc_chrdev_region(&rc4ml_devno, rc4ml_minor, 1, "rc4ml_dev");
 	if (res < 0)
 	{
-		printk(KERN_ALERT "rc4ml device registration failed, may need to change a major number.\n");
+		printk(KERN_ALERT "rc4ml alloc_chrdev_region failed.\n");
+		return res;
 	}
-	else
+
+	cdev_init(&rc4ml_cdev, &rc4ml_ops);
+	rc4ml_cdev.owner = THIS_MODULE;
+	res = cdev_add(&rc4ml_cdev, rc4ml_devno, 1);
+	if (res < 0)
 	{
-		printk("rc4ml device registred\n");
+		printk(KERN_ALERT "rc4ml cdev_add failed.\n");
+		unregister_chrdev_region(rc4ml_devno, 1);
+		return res;
 	}
+
 	cls = class_create(THIS_MODULE, "rc4ml_class");
 	if (IS_ERR(cls))
 	{
-		unregister_chrdev(rc4ml_major, "rc4ml_dev");
+		res = PTR_ERR(cls);
+		cdev_del(&rc4ml_cdev);
+		unregister_chrdev_region(rc4ml_devno, 1);
+		return res;
 	}
+
 	rc4ml_device = device_create(cls, NULL, rc4ml_devno, NULL, "rc4ml_dev");
 	if (IS_ERR(rc4ml_device))
 	{
+		res = PTR_ERR(rc4ml_device);
 		class_destroy(cls);
-		unregister_chrdev(rc4ml_major, "rc4ml_dev");
-		return -EBUSY;
+		cdev_del(&rc4ml_cdev);
+		unregister_chrdev_region(rc4ml_devno, 1);
+		return res;
 	}
+
+	printk("rc4ml device registered: major=%d minor=%d\n", MAJOR(rc4ml_devno), MINOR(rc4ml_devno));
 	printk("rc4ml:init complete\n");
 	return 0;
 }
@@ -205,6 +223,7 @@ void rc4ml_cleanup(void)
 {
 	device_destroy(cls, rc4ml_devno);
 	class_destroy(cls);
-	unregister_chrdev(rc4ml_major, "rc4ml_dev");
+	cdev_del(&rc4ml_cdev);
+	unregister_chrdev_region(rc4ml_devno, 1);
 	printk("rc4ml:destroy complete\n");
 }
