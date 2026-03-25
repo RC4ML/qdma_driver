@@ -6,6 +6,7 @@ sudo apt-get install libaio1 libaio-dev
 git clone https://github.com/RC4ML/qdma_driver.git
 cd qdma_driver
 ~~~
+For Ubuntu 24.04, please replace `libaio1` with `libaio1t64`.
 
 2. compile
 ~~~bash
